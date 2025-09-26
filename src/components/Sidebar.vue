@@ -1,45 +1,35 @@
 <template>
-  <aside class="w-64 h-screen bg-slate-900 text-white p-4">
-    <nav class="flex flex-col space-y-4">
-      <router-link
-        to="/"
-        class="flex items-center space-x-2 hover:text-blue-400"
-      >
-        <span>🔹</span>
-        <span>Visão Geral</span>
-      </router-link>
+  <aside class="w-16 h-screen bg-[#0f172a] flex flex-col items-center py-4 space-y-6">
+    <!-- Dashboard -->
+    <router-link 
+      to="/" 
+      class="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+      :class="$route.path === '/' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-blue-400'">
+      <i class="fas fa-home"></i>
+    </router-link>
 
-      <router-link
-        to="/clientes"
-        class="flex items-center space-x-2 hover:text-blue-400"
-      >
-        <span>👤</span>
-        <span>Clientes</span>
-      </router-link>
+    <!-- Login -->
+    <router-link 
+      to="/login" 
+      class="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+      :class="$route.path === '/login' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-blue-400'">
+      <i class="fas fa-user"></i>
+    </router-link>
 
-      <router-link
-        to="/prestadores"
-        class="flex items-center space-x-2 hover:text-blue-400"
-      >
-        <span>🛡️</span>
-        <span>Prestadores</span>
-      </router-link>
+    <!-- Clientes -->
+    <router-link 
+      to="/clients" 
+      class="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+      :class="$route.path === '/clients' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-blue-400'">
+      <i class="fas fa-briefcase"></i>
+    </router-link>
 
-      <router-link
-        to="/financeiro"
-        class="flex items-center space-x-2 hover:text-blue-400"
-      >
-        <span>💰</span>
-        <span>Financeiro</span>
-      </router-link>
-
-      <router-link
-        to="/configuracoes"
-        class="flex items-center space-x-2 hover:text-blue-400"
-      >
-        <span>⚙️</span>
-        <span>Configurações</span>
-      </router-link>
-    </nav>
+    <!-- Agenda -->
+    <router-link 
+      to="/agenda" 
+      class="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+      :class="$route.path === '/agenda' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-blue-400'">
+      <i class="fas fa-calendar-alt"></i>
+    </router-link>
   </aside>
 </template>
