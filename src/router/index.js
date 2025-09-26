@@ -1,10 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-// importando suas páginas
 import Dashboard from "@/pages/Dashboard.vue";
-import Clients from "@/pages/Clients.vue";
+import Login from "@/pages/Login.vue"; // ✅ agora a tela de login oficial
 import Providers from "@/pages/Providers.vue";
-import Finance from "@/pages/Finance.vue";
+import Agenda from "@/pages/Agenda.vue";
 
 const routes = [
   {
@@ -13,9 +12,9 @@ const routes = [
     component: Dashboard,
   },
   {
-    path: "/clients",
-    name: "Clients",
-    component: Clients,
+    path: "/login",
+    name: "Login",
+    component: Login,
   },
   {
     path: "/providers",
@@ -23,9 +22,9 @@ const routes = [
     component: Providers,
   },
   {
-    path: "/finance",
-    name: "Finance",
-    component: Finance,
+    path: "/agenda",
+    name: "Agenda",
+    component: Agenda,
   },
 ];
 
