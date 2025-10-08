@@ -10,12 +10,52 @@
       </div>
 
       <div class="filters-panel mt-6 p-4 bg-gray-800 rounded-lg shadow-inner">
-        <h3 class="font-semibold text-gray-300 mb-3 text-lg border-b border-gray-700 pb-2">Filtros</h3>
+        <h3 class="font-semibold text-gray-300 mb-3 text-lg border-b border-gray-700 pb-2">Categoria de Criação</h3>
         <ul class="space-y-2 text-sm">
-          <li class="flex items-center text-blue-400"><span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>Work</li>
-          <li class="flex items-center text-green-400"><span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>Data Science Team</li>
-          <li class="flex items-center text-purple-400"><span class="w-2 h-2 rounded-full bg-purple-500 mr-2"></span>Data Science Core</li>
-          <li class="flex items-center text-yellow-400"><span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>Personal</li>
+          <li
+            v-for="category in eventCategories"
+            :key="category.name"
+            @click="selectCategory(category)"
+            class="flex items-center p-2 rounded-md cursor-pointer transition duration-150"
+            :class="{
+              'bg-blue-900/40 border border-blue-600': selectedCategory.name === category.name, 
+              'hover:bg-gray-700': selectedCategory.name !== category.name
+            }"
+          >
+            <span 
+              class="w-3 h-3 rounded-full mr-2" 
+              :class="`bg-${category.color}-500`" 
+            ></span>
+            <span 
+              :class="`text-${category.color}-400`" 
+              class="font-medium"
+            >{{ category.name }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="filters-panel mt-6 p-4 bg-gray-800 rounded-lg shadow-inner">
+        <h3 class="font-semibold text-gray-300 mb-3 text-lg border-b border-gray-700 pb-2">Filtros de Agenda</h3>
+        <ul class="space-y-2 text-sm">
+          <li
+            v-for="category in eventCategories"
+            :key="category.name"
+            @click="toggleFilter(category.className)"
+            class="flex items-center p-2 rounded-md cursor-pointer transition duration-150"
+            :class="{
+              'bg-blue-900/40 border border-blue-600': activeFilters.includes(category.className), 
+              'hover:bg-gray-700': !activeFilters.includes(category.className)
+            }"
+          >
+            <span 
+              class="w-3 h-3 rounded-full mr-2" 
+              :class="`bg-${category.color}-500`" 
+            ></span>
+            <span 
+              :class="`text-${category.color}-400`" 
+              class="font-medium"
+            >{{ category.name }}</span>
+          </li>
         </ul>
       </div>
     </div>
@@ -41,6 +81,13 @@
       </div>
     </div>
   </div>
+
+  <EventModal
+    :is-visible="isModalVisible"
+    :category="selectedCategory"        :event-categories="eventCategories" :select-info="currentSelectInfo"
+    @close="isModalVisible = false"
+    @create="finalizeEventCreation"
+  />
 </template>
 
 <script setup>
@@ -48,62 +95,146 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import { ref } from 'vue'
+import { ref, reactive, computed } from 'vue' 
 
+import EventModal from '../components/EventModal.vue' 
+
+// ----------------------------------------------------
+// 1. ESTADO DO MODAL E CORES (Prioridade)
+// ----------------------------------------------------
+const eventCategories = reactive([
+  // Cores de Prioridade
+  { name: 'Crítico', color: 'red', className: 'event-red' },
+  { name: 'Alto', color: 'orange', className: 'event-orange' },
+  { name: 'Médio', color: 'cyan', className: 'event-cyan' },
+  { name: 'Baixo', color: 'lime', className: 'event-lime' },
+])
+
+const selectedCategory = ref(eventCategories[0])
+const isModalVisible = ref(false)
+const currentSelectInfo = ref(null)
+
+const selectCategory = (category) => {
+  selectedCategory.value = category
+}
+
+// ----------------------------------------------------
+// 2. LÓGICA DE FILTRAGEM
+// ----------------------------------------------------
+
+const allEvents = reactive([
+  { title: 'Reunião Crítica', start: '2025-09-26T10:00:00', end: '2025-09-26T11:00:00', className: 'event-red' },
+  { title: 'Planejamento Alto', start: '2025-09-30T09:00:00', end: '2025-09-30T10:00:00', className: 'event-orange' },
+  { title: 'Consulta de Rotina', start: '2025-09-28T15:30:00', end: '2025-09-28T16:00:00', className: 'event-cyan' },
+  { title: 'Tarefa Baixa', start: '2025-10-01T14:00:00', end: '2025-10-01T15:00:00', className: 'event-lime' },
+])
+
+const activeFilters = ref(eventCategories.map(c => c.className))
+
+const toggleFilter = (className) => {
+  const index = activeFilters.value.indexOf(className)
+  if (index > -1) {
+    activeFilters.value.splice(index, 1)
+  } else {
+    activeFilters.value.push(className)
+  }
+}
+
+const filteredEvents = computed(() => {
+  if (activeFilters.value.length === 0 || activeFilters.value.length === eventCategories.length) {
+    return allEvents
+  }
+  return allEvents.filter(event => 
+    activeFilters.value.includes(event.className)
+  )
+})
+
+// ----------------------------------------------------
+// 3. FUNÇÕES DE MANIPULAÇÃO DO CALENDÁRIO
+// ----------------------------------------------------
 const calendarRef = ref(null)
-const calendarOptions = {
+
+const handleDateSelect = (selectInfo) => {
+  currentSelectInfo.value = selectInfo
+  isModalVisible.value = true
+}
+
+const finalizeEventCreation = (eventData) => {
+  const calendarApi = calendarRef.value.getApi();
+  calendarApi.unselect();
+  
+  const newEvent = {
+    id: Date.now().toString(),
+    title: eventData.title,
+    start: eventData.start,
+    end: eventData.end,
+    allDay: eventData.allDay,
+    className: eventData.className // Usa a className ESCOLHIDA no modal
+  };
+  
+  allEvents.push(newEvent); 
+  
+  isModalVisible.value = false;
+}
+
+const handleEventClick = (clickInfo) => {
+  if (confirm(`Deseja deletar o evento '${clickInfo.event.title}'?`)) {
+    clickInfo.event.remove()
+    
+    const index = allEvents.findIndex(e => e.id === clickInfo.event.id)
+    if (index > -1) {
+      allEvents.splice(index, 1)
+    }
+  }
+}
+
+// ----------------------------------------------------
+// 4. OPÇÕES DO FULLCALENDAR
+// ----------------------------------------------------
+const calendarOptions = reactive({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   
-  // Define a visualização principal
   initialView: 'timeGridWeek', 
-  
-  // Ajusta a barra de cabeçalho: Sem o botão de 'month'
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: 'timeGridWeek,timeGridDay' // Apenas Semana e Dia
+    right: 'timeGridWeek,timeGridDay'
   },
   
-  // Mantém a tradução dos botões
-  buttonText: {
-    today: 'Hoje',
-    week: 'Semana',
-    day: 'Dia'
-  },
-  
-  // Seus eventos
-  events: [
-    { title: 'Reunião com equipe', start: '2025-09-26T10:00:00', end: '2025-09-26T11:00:00', className: 'event-team' },
-    { title: 'Consulta Cliente X', start: '2025-09-28T15:30:00', end: '2025-09-28T16:00:00', className: 'event-client' }
-  ],
-  
-  // Outras opções
+  locale: 'pt-br', 
+  buttonText: { today: 'Hoje', week: 'Semana', day: 'Dia' },
+  titleFormat: { year: 'numeric', month: 'short', day: 'numeric' },
+  dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric', omitCommas: true },
+
   editable: true,
   selectable: true,
+  selectMirror: true,
+  select: handleDateSelect,
+  eventClick: handleEventClick,
+
   nowIndicator: true,
   slotMinTime: '07:00:00',
   slotMaxTime: '20:00:00',
-  
-  // Ajuste o aspecto ratio para que a coluna central tenha mais altura
   aspectRatio: 1.5, 
   handleWindowResize: true,
-}
+  
+  events: filteredEvents,
+})
 </script>
 
 <style scoped>
-/* Estilo principal para criar o layout de 3 colunas em telas maiores */
+/* Estilos mantidos */
+/* ... */
+
 .agenda-wrapper {
-  /* No desktop (a partir de 'lg'), usa grid de 3 colunas */
   @apply lg:grid lg:grid-cols-[250px_1fr_250px] lg:gap-6 max-w-7xl mx-auto my-7 p-4;
-  
-  /* Estilos de fundo e borda para o wrapper principal */
   @apply bg-gray-900 rounded-xl shadow-2xl border border-blue-900/20;
 }
 
-/* Colunas Laterais (Hidden in mobile, visible in desktop) */
+/* Colunas Laterais */
 .sidebar-left, .sidebar-right {
   @apply hidden lg:block; 
-  @apply h-full overflow-y-auto; /* Permite scroll nas sidebars */
+  @apply h-full overflow-y-auto; 
 }
 
 /* Coluna Central */
@@ -113,37 +244,75 @@ const calendarOptions = {
 
 /* Título */
 .title {
-  @apply text-center mb-6 text-3xl font-bold text-blue-300 lg:text-left lg:text-2xl;
+  @apply hidden; 
 }
 
-/* Estilos para o FullCalendar (Dark Theme) */
+/* Estilos para o FullCalendar (Dark Theme e Profissionalismo) */
 .fc {
   @apply text-gray-100;
-  /* Variáveis CSS para personalizar o FullCalendar com o tema escuro */
+  
   --fc-page-bg-color: theme('colors.gray.900');
   --fc-neutral-bg-color: theme('colors.gray.800');
   --fc-border-color: theme('colors.gray.700');
-  --fc-daygrid-event-dot-color: theme('colors.blue.400');
   --fc-timegrid-event-border-color: transparent;
+  
+  /* Cor de fundo suave para o dia de hoje */
+  --fc-today-bg-color: theme('colors.blue.900'); 
+}
+
+/* Animação sutil para o fundo da coluna do dia atual */
+:deep(.fc-timegrid-slots .fc-day.fc-day-today) {
+    animation: subtlePulse 8s infinite alternate ease-in-out;
+}
+
+@keyframes subtlePulse {
+    0% {
+        background-color: theme('colors.blue.900');
+    }
+    100% {
+        background-color: theme('colors.blue.900 / 0.7');
+    }
 }
 
 /* Ajusta a barra de cabeçalho do calendário */
 :deep(.fc-header-toolbar) {
-  @apply flex-col space-y-4 lg:flex-row lg:space-y-0 p-3 bg-gray-800 rounded-t-lg border-b border-gray-700;
-}
-:deep(.fc-toolbar-chunk:nth-child(2)) { /* Título do Mês/Semana */
-  @apply order-first lg:order-none mb-4 lg:mb-0;
-}
-:deep(.fc-toolbar-chunk:nth-child(3)) { /* Botões de visualização */
-  @apply flex justify-center lg:justify-end;
+  @apply p-0 bg-transparent border-none rounded-none;
+  @apply flex-row justify-between items-center;
 }
 
-/* Cores dos eventos */
-.event-team {
-  @apply bg-blue-600/70 border-blue-700/80 text-white font-medium;
+:deep(.fc-toolbar-chunk:nth-child(2)) { 
+  @apply flex-grow text-center text-xl font-semibold; 
 }
-.event-client {
-  @apply bg-purple-600/70 border-purple-700/80 text-white font-medium;
+
+:deep(.fc-toolbar-chunk:nth-child(1) button),
+:deep(.fc-toolbar-chunk:nth-child(3) button) {
+  @apply bg-gray-700 hover:bg-gray-600 border-none text-gray-100;
+  @apply px-3 py-1.5 rounded-md text-sm font-medium;
+  @apply transition duration-150 ease-in-out;
+}
+
+:deep(.fc-col-header-cell) {
+  @apply bg-gray-800 border-b border-gray-700/50;
+}
+:deep(.fc-col-header-cell-cushion) {
+  @apply text-gray-300 font-semibold text-sm py-2;
+}
+:deep(.fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion) {
+  @apply text-yellow-300; 
+}
+
+/* CORES DOS EVENTOS (Classes de PRIORIDADE) */
+.event-red {
+  @apply bg-red-800/80 border-red-700/80 text-white font-medium;
+}
+.event-orange {
+  @apply bg-orange-700/80 border-orange-600/80 text-white font-medium;
+}
+.event-cyan {
+  @apply bg-cyan-700/80 border-cyan-600/80 text-white font-medium;
+}
+.event-lime {
+  @apply bg-lime-700/80 border-lime-600/80 text-gray-900 font-medium;
 }
 
 /* Estilo para simular o teclado na coluna direita */

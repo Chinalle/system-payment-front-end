@@ -106,14 +106,25 @@
             class="flex items-center gap-3"
           >
             <input type="checkbox" v-model="selectedServices" :value="s" />
-            <span
-              >{{ s.name }} - {{ s.duration }}min - R$ {{ s.price }}</span
-            >
+            <span>{{ s.name }} - {{ s.duration }}min - R$ {{ s.price }}</span>
           </div>
         </div>
+        
+        <!-- NOVO BLOCO DE PAGAMENTO -->
         <div class="mt-4 p-3 bg-gray-800 rounded-lg">
-          <p><b>Duração total:</b> {{ totalDuration }} min</p>
-          <p><b>Preço total:</b> R$ {{ totalPrice }}</p>
+          <p class="mb-2"><b>Duração total:</b> {{ totalDuration }} min</p>
+          <p class="mb-4"><b>Preço total:</b> R$ {{ totalPrice }}</p>
+
+          <button
+            @click="goToCheckout"
+            :disabled="totalPrice === 0"
+            class="w-full py-2 rounded-lg font-bold transition-all"
+            :class="totalPrice > 0 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'"
+          >
+            Pagar Serviços (R$ {{ totalPrice }})
+          </button>
         </div>
       </div>
 
@@ -188,6 +199,7 @@
 import { ref, computed, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useAppStore } from "../stores/app";
+import { useRouter } from 'vue-router'; // Importar o useRouter
 
 import CalendarCard from "../components/CalendarCard.vue";
 import ListCard from "../components/ListCard.vue";
@@ -196,6 +208,7 @@ import LineChartCard from "../components/LineChartCard.vue";
 import DoughnutChartCard from "../components/DoughnutChartCard.vue";
 import BarChartCard from "../components/BarChartCard.vue";
 
+const router = useRouter(); // Inicializar o router
 const store = useAppStore();
 const { clients, providers, metrics } = storeToRefs(store);
 
@@ -214,7 +227,7 @@ const totalPrice = computed(() =>
   selectedServices.value.reduce((acc, s) => acc + s.price, 0)
 );
 
-// Pagamento
+// Pagamento (Modal original)
 const showPayment = ref(false);
 const countdown = ref(900); // 15 minutos
 let timer = null;
@@ -242,6 +255,13 @@ const confirmPayment = () => {
   alert("Pagamento confirmado com sucesso!");
   showPayment.value = false;
 };
+
+// NOVA FUNÇÃO: Redirecionar para o Checkout
+const goToCheckout = () => {
+    if (totalPrice.value > 0) {
+        router.push('/checkout');
+    }
+}
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);

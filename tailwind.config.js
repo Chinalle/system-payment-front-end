@@ -24,5 +24,13 @@ export default {
       }
     },
   },
+  // 🚨 NOVO: Lista segura para preservar classes dinâmicas (filtros e cores)
+  safelist: [
+    // Preserva todas as combinações de bg/text/border e as cores usadas
+    { pattern: /(bg|text|border)-(red|orange|cyan|lime)-(400|500|600|700|800)/ },
+    { pattern: /bg-(blue)-(900)\/40/ }, // bg-blue-900/40 para o destaque de seleção
+    { pattern: /border-(blue)-(600)/ }, // border-blue-600 para o destaque de seleção
+    { pattern: /text-(gray)-(900)/ }, // text-gray-900 para eventos com cores claras
+  ],
   plugins: [],
 }
