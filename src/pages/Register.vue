@@ -5,86 +5,88 @@
       <p>Selecione seu perfil e preencha os campos abaixo.</p>
 
       <div class="user-type-selector">
-        <button
-          type="button"
-          :class="{ active: selectedUserType === 'cliente' }"
-          @click="setUserType('cliente')"
-        >
+        <button type="button" :class="{ active: selectedUserType === 'client' }" @click="setUserType('client')">
           Sou Cliente
         </button>
-        <button
-          type="button"
-          :class="{ active: selectedUserType === 'provider' }"
-          @click="setUserType('provider')"
-        >
-          Sou Profissional
+        <button type="button" :class="{ active: selectedUserType === 'provider' }" @click="setUserType('provider')">
+          Sou Provedor
         </button>
       </div>
-
+      
       <div class="form-group">
         <label for="fullName">Nome Completo <span class="text-red-500">*</span></label>
         <input type="text" id="fullName" v-model="formData.fullName" placeholder="Digite seu nome completo" />
+        <p v-if="errors.fullName" class="error-message">{{ errors.fullName }}</p>
       </div>
 
       <div class="form-group">
         <label for="email">E-mail <span class="text-red-500">*</span></label>
         <input type="email" id="email" v-model="formData.email" placeholder="Digite seu e-mail" />
+        <p v-if="errors.email" class="error-message">{{ errors.email }}</p>
       </div>
       
       <div class="form-group">
         <label for="phone">Telefone <span class="text-red-500">*</span></label>
         <input type="tel" id="phone" v-model="formData.phone" placeholder="(XX) XXXXX-XXXX" />
+        <p v-if="errors.phone" class="error-message">{{ errors.phone }}</p>
       </div>
 
       <div class="form-group">
         <label for="cpf">CPF <span class="text-red-500">*</span></label>
         <input type="text" id="cpf" v-model="formData.cpf" placeholder="000.000.000-00" />
+        <p v-if="errors.cpf" class="error-message">{{ errors.cpf }}</p>
       </div>
 
       <div class="form-group">
         <label for="password">Senha <span class="text-red-500">*</span></label>
         <input type="password" id="password" v-model="formData.password" placeholder="Crie uma senha forte" />
+        <p v-if="errors.password" class="error-message">{{ errors.password }}</p>
       </div>
 
       <div class="form-group">
         <label for="confirmPassword">Confirmar Senha <span class="text-red-500">*</span></label>
         <input type="password" id="confirmPassword" v-model="formData.confirmPassword" placeholder="Confirme sua senha" />
+        <p v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</p>
       </div>
     
       <div class="form-group">
         <label for="birthDate">Data de Nascimento</label>
         <input type="date" id="birthDate" v-model="formData.birthDate" />
+        <p v-if="errors.birthDate" class="error-message">{{ errors.birthDate }}</p>
       </div>
 
       <div class="form-group">
         <label for="cep">CEP</label>
         <input type="text" id="cep" v-model="formData.cep" @blur="fetchAddressFromCep" placeholder="00000-000" />
+        <p v-if="errors.cep" class="error-message">{{ errors.cep }}</p>
       </div>
       <div class="form-group">
         <label for="logradouro">Logradouro</label>
         <input type="text" id="logradouro" v-model="formData.logradouro" placeholder="Rua, Avenida, etc." />
+        <p v-if="errors.logradouro" class="error-message">{{ errors.logradouro }}</p>
       </div>
       <div class="form-group">
         <label for="numero">Número</label>
         <input type="text" id="numero" v-model="formData.numero" placeholder="Ex: 123" />
+        <p v-if="errors.numero" class="error-message">{{ errors.numero }}</p>
       </div>
        <div class="form-group">
         <label for="bairro">Bairro</label>
         <input type="text" id="bairro" v-model="formData.bairro" placeholder="Digite o bairro" />
+        <p v-if="errors.bairro" class="error-message">{{ errors.bairro }}</p>
       </div>
        <div class="form-group">
         <label for="cidade">Cidade</label>
         <input type="text" id="cidade" v-model="formData.cidade" placeholder="Digite a cidade" />
+        <p v-if="errors.cidade" class="error-message">{{ errors.cidade }}</p>
       </div>
        <div class="form-group">
         <label for="estado">Estado (UF)</label>
         <input type="text" id="estado" v-model="formData.estado" placeholder="Ex: SP" />
+        <p v-if="errors.estado" class="error-message">{{ errors.estado }}</p>
       </div>
       
-
-      <button type="submit" class="btn">
-        Cadastrar
-      </button>
+      <button type="submit" class="btn">Cadastrar</button>
 
       <div class="links">
         <router-link to="/login">Já tenho uma conta</router-link>
@@ -93,109 +95,108 @@
   </div>
 </template>
 
-<script>
-/*import Swal from "sweetalert2";
-import {z} from "zod";
+<script lang="ts">
+import { defineComponent } from 'vue';
+import Swal from "sweetalert2";
+import { z, ZodError } from "zod";
 
-// criação do schema com zod que vai validar e caso exista um erro vai devolver para o usuario e repetir esse processo para a tela de login
 
-const RegisterSchema = z.object({fullName: z.string().min(5, "Tamanho mínimo não atingido").max(100,"Excedeu o limite de caracter!"), email: z.email})
-type FormData = z.infer <>*/
-export default {
+const RegisterSchema = z.object({
+  fullName: z.string({ error: "O nome completo é obrigatório." }).min(5, "O nome completo deve ter no mínimo 5 caracteres.").max(100, "O nome excedeu o limite de 100 caracteres."),
+  email: z.email("Por favor, insira um e-mail válido."),
+  phone: z.string({ error: "O número de telefone é obrigatório." }).min(10, "O telefone deve ter no mínimo 10 dígitos.").max(11, "O telefone deve ter no máximo 11 dígitos."),
+  cpf: z.string({ error: "O CPF é obrigatório." }).length(11, "O CPF deve ter 11 dígitos."),
+  password: z.string({ error: "A senha é obrigatória." })
+  .min(8, "A senha deve ter no mínimo 8 caracteres.")
+  .regex(/(?=.*[a-z])/, "Deve conter pelo menos uma letra minúscula.")
+  .regex(/(?=.*[A-Z])/, "Deve conter pelo menos uma letra maiúscula.")
+  .regex(/(?=.*[^A-Za-z0-9])/, "Deve conter pelo menos um caractere especial."),
+  confirmPassword: z.string({ error: "A confirmação de senha é obrigatória." }),
+  birthDate: z.preprocess((val) => (val === "" ? undefined : val),
+    z.coerce.date()
+      .min(new Date("1900-01-01"), { message: "A data de nascimento não pode ser anterior a 1900." })
+      .max(new Date(), { message: "A data de nascimento não pode ser no futuro." })
+      .optional()
+  ),
+  cep: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
+})
+.refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem.",
+  path: ["confirmPassword"],
+});
+
+type FormData = z.infer<typeof RegisterSchema>;
+
+export default defineComponent({
   name: "RegisterPage",
   data() {
     return {
-      selectedUserType: 'cliente',
-      formData: {
-        fullName: "",
-        email: "",
-        phone: "",
-        cpf: "",
-        password: "",
-        confirmPassword: "",
-        birthDate: "",
-        cep: "",
-        logradouro: "",
-        numero: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
-      },
+      selectedUserType: 'client',
+      formData: {} as Partial<FormData>,
+      errors: {} as Record<string, string>,
     };
   },
   methods: {
-    setUserType(type) {
+    setUserType(type: 'client' | 'provider') {
       this.selectedUserType = type;
     },
-
-    async handleRegister() {
-      const requiredFields = ['fullName', 'email', 'phone', 'cpf', 'password', 'confirmPassword'];
-      for (const field of requiredFields) {
-        if (!this.formData[field]) {
-          this.showToast("warning", "Por favor, preencha todos os campos obrigatórios.");
-          return;
-        }
-      }
-      if (this.formData.password !== this.formData.confirmPassword) {
-        this.showToast("error", "As senhas não coincidem!");
-        return;
-      }
-      
-      const payload = {
-        userType: this.selectedUserType,
-        fullName: this.formData.fullName,
-        email: this.formData.email,
-        phone: this.formData.phone,
-        cpf: this.formData.cpf,
-        password: this.formData.password,
-        birthDate: this.formData.birthDate || null,
-        address: {
-          cep: this.formData.cep || null,
-          logradouro: this.formData.logradouro || null,
-          numero: this.formData.numero || null,
-          bairro: this.formData.bairro || null,
-          cidade: this.formData.cidade || null,
-          estado: this.formData.estado || null,
-        }
-      };
-
-      console.log("Enviando para a API:", payload);
-
+    handleRegister() {
+      this.errors = {};
       try {
+        const validatedData = RegisterSchema.parse(this.formData);
+        const payload = {
+          ...validatedData,
+          userType: this.selectedUserType
+        };
+        console.log("Dados a serem enviados para o backend:", payload);
+        console.log("Dados validados com sucesso:", validatedData);
         this.showToast("success", `Cadastro como ${this.selectedUserType} realizado com sucesso!`);
         setTimeout(() => { this.$router.push('/login'); }, 2000);
       } catch (error) {
-        this.showToast("error", "Ocorreu um erro no cadastro. Tente novamente.");
-        console.error("Erro no cadastro:", error);
+        if (error instanceof ZodError) {
+          const formattedErrors: Record<string, string> = {};
+          const fieldErrors = error.format();
+          for (const key in fieldErrors) {
+             if (key !== "_errors" && Object.prototype.hasOwnProperty.call(fieldErrors, key)) {
+                const errorArray = (fieldErrors as any)[key]?._errors;
+                if (errorArray && errorArray.length > 0) {
+                    formattedErrors[key] = errorArray[0];
+                }
+            }
+          }
+          this.errors = formattedErrors;
+          console.log("Erros formatados:", this.errors);
+          this.showToast("error", "Por favor, corrija os erros no formulário.");
+        }
       }
     },
-
     async fetchAddressFromCep() {
-      const cep = this.formData.cep.replace(/\D/g, '');
+      const cep = (this.formData.cep || "").replace(/\D/g, ''); 
       if (cep.length !== 8) return;
       
       try {
         this.showToast('info', 'Buscando CEP...');
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         const data = await response.json();
-
         if (data.erro) {
           this.showToast('error', 'CEP não encontrado.');
           return;
         }
-
         this.formData.logradouro = data.logradouro;
         this.formData.bairro = data.bairro;
         this.formData.cidade = data.localidade;
         this.formData.estado = data.uf;
-
       } catch (error) {
         this.showToast('error', 'Não foi possível buscar o CEP.');
         console.error("Erro ao buscar CEP:", error);
       }
     },
-
-    showToast(icon, title) {
+    showToast(icon: 'success' | 'error' | 'warning' | 'info' | 'question', title: string) {
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -207,7 +208,7 @@ export default {
       });
     },
   },
-};
+});
 </script>
 
 <style scoped>
@@ -293,6 +294,13 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   color: #fff;
 }
 
+/* ESTILO PARA MENSAGEM DE ERRO */
+.error-message {
+  color: #ef4444; /* Vermelho */
+  font-size: 12px;
+  margin-top: -8px; /* Puxa a mensagem para mais perto do input */
+}
+
 /* OUTROS ESTILOS */
 .btn {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
@@ -313,8 +321,6 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   font-size: 14px;
   color: #93c5fd;
 }
-
-
 .text-red-500 {
   color: #ef4444;
   margin-left: 2px;
