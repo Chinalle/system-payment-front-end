@@ -1,22 +1,8 @@
 <template>
   <div class="login-page">
     <form @submit.prevent="handleSubmit" class="formLogin animated-form">
-      <h1>{{ isRegister ? "Criar conta" : "Bem-vindo" }}</h1>
-      <p>
-        {{ isRegister
-          ? "Preencha os campos para criar sua conta"
-          : "Digite seus dados para acessar sua conta" }}
-      </p>
-
-      <div v-if="isRegister" class="form-group">
-        <label for="name">Nome</label>
-        <input
-          type="text"
-          id="name"
-          v-model="name"
-          placeholder="Digite seu nome completo"
-        />
-      </div>
+      <h1>Bem-vindo de volta!</h1>
+      <p>Digite seus dados para acessar sua conta</p>
 
       <div class="form-group">
         <label for="email">E-mail</label>
@@ -39,25 +25,13 @@
         />
       </div>
 
-      <div v-if="isRegister" class="form-group">
-        <label for="confirmPassword">Confirmar Senha</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          v-model="confirmPassword"
-          placeholder="Confirme sua senha"
-        />
-      </div>
-
       <div class="links">
-        <a v-if="!isRegister" href="#">Esqueci minha senha</a>
-        <a href="#" @click.prevent="toggleMode">
-          {{ isRegister ? "Já tenho conta" : "Criar uma conta" }}
-        </a>
+        <a href="#">Esqueci minha senha</a>
+        <router-link to="/register">Criar uma conta</router-link>
       </div>
 
       <button type="submit" class="btn">
-        {{ isRegister ? "Cadastrar" : "Entrar" }}
+        Entrar
       </button>
     </form>
   </div>
@@ -72,43 +46,17 @@ export default {
     return {
       email: "",
       password: "",
-      name: "",
-      confirmPassword: "",
-      isRegister: false,
     };
   },
   methods: {
-    toggleMode() {
-      this.isRegister = !this.isRegister;
-      this.email = "";
-      this.password = "";
-      this.name = "";
-      this.confirmPassword = "";
-    },
-
     handleSubmit() {
-      if (this.isRegister) {
-        if (!this.name || !this.email || !this.password || !this.confirmPassword) {
-          this.showToast("warning", "Preencha todos os campos!");
-          return;
-        }
-
-        if (this.password !== this.confirmPassword) {
-          this.showToast("error", "As senhas não coincidem!");
-          return;
-        }
-
-        this.showToast("success", `Conta criada para ${this.name}!`);
-        this.toggleMode(); // volta para a tela de login
-      } else {
-        if (!this.email || !this.password) {
-          this.showToast("warning", "Preencha todos os campos!");
-          return;
-        }
-
-        this.showToast("success", `Login feito com ${this.email}`);
-        setTimeout(() => this.$router.push("/"), 2000);
+      if (!this.email || !this.password) {
+        this.showToast("warning", "Preencha todos os campos!");
+        return;
       }
+
+      this.showToast("success", `Login feito com ${this.email}`);
+      setTimeout(() => this.$router.push("/dashboard"), 2000); 
     },
 
     showToast(icon, title) {
@@ -129,10 +77,13 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap");
 
+.login-page {
+  /* Garante que o container da página exista para o App.vue centralizar */
+}
+
 .formLogin {
   display: flex;
   flex-direction: column;
-  /* Removido: gap: 15px; (Espaçamento agora controlado pelo .form-group) */
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
@@ -143,7 +94,6 @@ export default {
   width: 350px;
 }
 
-/* NOVO ESTILO: Agrupa label e input, garante o input abaixo do label e define o espaçamento entre os campos */
 .form-group {
     display: flex;
     flex-direction: column; 
@@ -156,14 +106,8 @@ export default {
 }
 
 @keyframes scaleIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .formLogin h1 {
@@ -189,14 +133,10 @@ export default {
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  /* Adicionado para garantir o mesmo tamanho (100% da largura do .form-group) */
   width: 100%; 
 }
 
-.formLogin input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
+.formLogin input::placeholder { color: rgba(255, 255, 255, 0.5); }
 .formLogin input:focus {
   background: rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 0 2px #3b82f6;
@@ -205,7 +145,6 @@ export default {
 .formLogin label {
   font-size: 13px;
   font-weight: 500;
-  /* Removido: margin-bottom: -8px; (Não é mais necessário devido ao `gap` no .form-group) */
   color: #e2e8f0;
 }
 
@@ -213,6 +152,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 5px;
+  margin-bottom: 20px;
 }
 
 .formLogin a {
@@ -221,9 +162,7 @@ export default {
   transition: color 0.3s;
 }
 
-.formLogin a:hover {
-  color: #fff;
-}
+.formLogin a:hover { color: #fff; }
 
 .btn {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
