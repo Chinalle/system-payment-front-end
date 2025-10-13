@@ -1,10 +1,10 @@
 <template>
   <div class="register-page">
-    <form @submit.prevent="handleRegister" class="formRegister animated-form">
-      <h1>Crie sua conta</h1>
-      <p>Selecione seu perfil e preencha os campos abaixo.</p>
+    <form @submit.prevent="handleRegister" class="form-grid animated-form">
+      <h1 class="span-12">Crie sua conta</h1>
+      <p class="span-12">Selecione seu perfil e preencha os campos abaixo.</p>
 
-      <div class="user-type-selector">
+      <div class="user-type-selector span-12">
         <button type="button" :class="{ active: selectedUserType === 'client' }" @click="setUserType('client')">
           Sou Cliente
         </button>
@@ -13,82 +13,79 @@
         </button>
       </div>
       
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="fullName">Nome Completo <span class="text-red-500">*</span></label>
         <input type="text" id="fullName" v-model="formData.fullName" placeholder="Digite seu nome completo" />
         <p v-if="errors.fullName" class="error-message">{{ errors.fullName }}</p>
       </div>
-
-      <div class="form-group">
-        <label for="email">E-mail <span class="text-red-500">*</span></label>
-        <input type="email" id="email" v-model="formData.email" placeholder="Digite seu e-mail" />
-        <p v-if="errors.email" class="error-message">{{ errors.email }}</p>
+      <div class="form-group span-4">
+        <label for="cpf">CPF <span class="text-red-500">*</span></label>
+        <input type="text" id="cpf" v-model="formData.cpf" placeholder="000.000.000-00" />
+        <p v-if="errors.cpf" class="error-message">{{ errors.cpf }}</p>
       </div>
-      
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="phone">Telefone <span class="text-red-500">*</span></label>
         <input type="tel" id="phone" v-model="formData.phone" placeholder="(XX) XXXXX-XXXX" />
         <p v-if="errors.phone" class="error-message">{{ errors.phone }}</p>
       </div>
 
-      <div class="form-group">
-        <label for="cpf">CPF <span class="text-red-500">*</span></label>
-        <input type="text" id="cpf" v-model="formData.cpf" placeholder="000.000.000-00" />
-        <p v-if="errors.cpf" class="error-message">{{ errors.cpf }}</p>
+      <div class="form-group span-4">
+        <label for="email">E-mail <span class="text-red-500">*</span></label>
+        <input type="email" id="email" v-model="formData.email" placeholder="Digite seu e-mail" />
+        <p v-if="errors.email" class="error-message">{{ errors.email }}</p>
       </div>
-
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="password">Senha <span class="text-red-500">*</span></label>
         <input type="password" id="password" v-model="formData.password" placeholder="Crie uma senha forte" />
         <p v-if="errors.password" class="error-message">{{ errors.password }}</p>
       </div>
-
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="confirmPassword">Confirmar Senha <span class="text-red-500">*</span></label>
         <input type="password" id="confirmPassword" v-model="formData.confirmPassword" placeholder="Confirme sua senha" />
         <p v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</p>
       </div>
     
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="birthDate">Data de Nascimento</label>
         <input type="date" id="birthDate" v-model="formData.birthDate" />
         <p v-if="errors.birthDate" class="error-message">{{ errors.birthDate }}</p>
       </div>
-
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="cep">CEP</label>
         <input type="text" id="cep" v-model="formData.cep" @blur="fetchAddressFromCep" placeholder="00000-000" />
         <p v-if="errors.cep" class="error-message">{{ errors.cep }}</p>
       </div>
-      <div class="form-group">
+      <div class="form-group span-4">
         <label for="logradouro">Logradouro</label>
         <input type="text" id="logradouro" v-model="formData.logradouro" placeholder="Rua, Avenida, etc." />
         <p v-if="errors.logradouro" class="error-message">{{ errors.logradouro }}</p>
       </div>
-      <div class="form-group">
+      
+      <div class="form-group span-2">
         <label for="numero">Número</label>
         <input type="text" id="numero" v-model="formData.numero" placeholder="Ex: 123" />
         <p v-if="errors.numero" class="error-message">{{ errors.numero }}</p>
       </div>
-       <div class="form-group">
+      <div class="form-group span-4">
         <label for="bairro">Bairro</label>
         <input type="text" id="bairro" v-model="formData.bairro" placeholder="Digite o bairro" />
         <p v-if="errors.bairro" class="error-message">{{ errors.bairro }}</p>
       </div>
-       <div class="form-group">
+      <div class="form-group span-4">
         <label for="cidade">Cidade</label>
         <input type="text" id="cidade" v-model="formData.cidade" placeholder="Digite a cidade" />
         <p v-if="errors.cidade" class="error-message">{{ errors.cidade }}</p>
       </div>
-       <div class="form-group">
+      <div class="form-group span-2">
         <label for="estado">Estado (UF)</label>
         <input type="text" id="estado" v-model="formData.estado" placeholder="Ex: SP" />
         <p v-if="errors.estado" class="error-message">{{ errors.estado }}</p>
       </div>
       
-      <button type="submit" class="btn">Cadastrar</button>
-
-      <div class="links">
+      <div class="form-group span-12">
+        <button type="submit" class="btn">Cadastrar</button>
+      </div>
+      <div class="links span-12">
         <router-link to="/login">Já tenho uma conta</router-link>
       </div>
     </form>
@@ -212,10 +209,23 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* ESTILOS GERAIS DO FORMULÁRIO */
-.formRegister {
+/* ESTILOS GERAIS DA PÁGINA */
+.register-page {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 20px; /* Espaçamento no topo e base da página */
+  box-sizing: border-box;
+}
+
+/* NOVO LAYOUT EM GRID */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr); /* Define um grid de 12 colunas */
+  gap: 16px 20px; /* Espaçamento vertical e horizontal */
+  
+  /* Estilos visuais do formulário */
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
@@ -224,28 +234,29 @@ export default defineComponent({
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   color: #fff;
   width: 100%;
-  max-width: 500px;
+  max-width: 1200px; /* Largura máxima do formulário horizontal */
 }
 
+/* CLASSES PARA CONTROLAR O TAMANHO DAS COLUNAS */
+.span-2 { grid-column: span 2; }
+.span-4 { grid-column: span 4; }
+.span-12 { grid-column: span 12; }
+
+
 /* Títulos e Parágrafos */
-h1 {
+h1, p:not(.error-message) {
   text-align: center;
-  font-size: 2em;
-  font-weight: 700;
   margin-bottom: 8px;
 }
-p {
-  text-align: center;
-  color: #a0aec0;
-  margin-bottom: 24px;
-}
+h1 { font-size: 2em; font-weight: 700; }
+p:not(.error-message) { color: #a0aec0; margin-bottom: 24px; }
+
 
 /* Agrupador de Label + Input */
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 label {
@@ -271,10 +282,10 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
 .user-type-selector {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  justify-content: center; /* Centraliza os botões */
 }
 .user-type-selector button {
-  flex: 1;
+  flex: 0 1 250px; /* Impede que os botões estiquem demais */
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -298,7 +309,8 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
 .error-message {
   color: #ef4444; /* Vermelho */
   font-size: 12px;
-  margin-top: -8px; /* Puxa a mensagem para mais perto do input */
+  margin: 0;
+  text-align: left; /* Alinha o erro à esquerda */
 }
 
 /* OUTROS ESTILOS */
@@ -311,11 +323,10 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   font-weight: 600;
   cursor: pointer;
   font-size: 15px;
-  margin-top: 10px;
+  width: 100%; /* Garante que o botão dentro do form-group ocupe o espaço */
 }
 .links {
   text-align: center;
-  margin-top: 20px;
 }
 .links a {
   font-size: 14px;
@@ -325,11 +336,25 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   color: #ef4444;
   margin-left: 2px;
 }
+
+/* ANIMAÇÃO */
 .animated-form {
   animation: scaleIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 @keyframes scaleIn {
   0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+/* === RESPONSIVIDADE PARA CELULAR === */
+@media (max-width: 800px) {
+  .form-grid {
+    grid-template-columns: 1fr; /* Em telas menores, usamos apenas 1 coluna */
+  }
+
+  /* Todos os campos voltam a ocupar a largura total */
+  .span-2, .span-4, .span-12 {
+    grid-column: span 1;
+  }
 }
 </style>
