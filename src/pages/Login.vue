@@ -4,6 +4,8 @@
       <h1>Bem-vindo de volta!</h1>
       <p>Digite seus dados para acessar sua conta</p>
 
+      <UserTypeSelector v-model="selectedUserType" />
+
       <div class="form-group">
         <label for="email">E-mail</label>
         <input
@@ -13,6 +15,7 @@
           placeholder="Digite seu e-mail"
           autofocus
         />
+        <p v-if="errors.email" class="error-message">{{ errors.email }}</p>
       </div>
 
       <div class="form-group">
@@ -23,6 +26,7 @@
           v-model="password"
           placeholder="Digite sua senha"
         />
+        <p v-if="errors.password" class="error-message">{{ errors.password }}</p>
       </div>
 
       <div class="links">
@@ -37,29 +41,84 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import Swal from "sweetalert2";
+import { z, ZodError } from "zod";
+import UserTypeSelector from '../components/UserTypeSelector.vue';
+import 'vue-router';
 
-export default {
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $router: import('vue-router').Router;
+    $route: import('vue-router').RouteLocationNormalizedLoaded;
+  }
+}
+
+const LoginSchema = z.object({
+  email: z.string()
+    .min(1, 'E-mail é obrigatório.') // Garante que o campo não está vazio
+    .email('Formato de e-mail inválido.'), 
+  password: z.string()
+    .min(1, "A senha é obrigatória."),
+});
+
+export default defineComponent({
   name: "LoginPage",
+  components: {
+    UserTypeSelector: UserTypeSelector 
+  },
   data() {
     return {
+      selectedUserType: 'client' as 'client' | 'provider',
       email: "",
       password: "",
+      errors: {} as Record<string, string>,
     };
   },
   methods: {
+    // 5. Lógica de validação com Zod no handleSubmit
     handleSubmit() {
-      if (!this.email || !this.password) {
-        this.showToast("warning", "Preencha todos os campos!");
-        return;
+      this.errors = {}; // Limpa erros antigos
+
+      try {
+        const dataToValidate = {
+          email: this.email,
+          password: this.password
+        };
+        
+        // Tenta validar os dados
+        LoginSchema.parse(dataToValidate);
+
+        // Se a validação passar, continua...
+        const payload = {
+          ...dataToValidate,
+          userType: this.selectedUserType
+        };
+        console.log("Dados de login a serem enviados:", payload);
+        
+        this.showToast("success", `Login feito como ${this.selectedUserType}`);
+        this.$router.push("/dashboard");
+
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const formattedErrors: Record<string, string> = {};
+          const fieldErrors = error.format(); 
+          
+          for (const key in fieldErrors) {
+             if (key !== "_errors" && Object.prototype.hasOwnProperty.call(fieldErrors, key)) {
+                const errorArray = (fieldErrors as any)[key]?._errors; 
+                if (errorArray && errorArray.length > 0) {
+                    formattedErrors[key] = errorArray[0];
+                }
+            }
+          }
+          this.errors = formattedErrors;
+          this.showToast("error", "Por favor, corrija os erros.");
+        }
       }
-
-      this.showToast("success", `Login feito com ${this.email}`);
-      setTimeout(() => this.$router.push("/dashboard"), 2000); 
     },
-
-    showToast(icon, title) {
+    showToast(icon: 'success' | 'error' | 'warning' | 'info' | 'question', title: string) {
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -71,7 +130,7 @@ export default {
       });
     },
   },
-};
+});
 </script>
 
 <style scoped>
@@ -117,7 +176,7 @@ export default {
   text-align: center;
 }
 
-.formLogin p {
+.formLogin p:not(.error-message) {
   font-size: 14px;
   text-align: center;
   margin-bottom: 20px;
@@ -179,5 +238,11 @@ export default {
 .btn:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+
+.error-message {
+  color: #ef4444; /* Um tom de vermelho vivo */
+  font-size: 12px;
+  margin-top: -8px; /* Puxa a mensagem para mais perto do input */
 }
 </style>

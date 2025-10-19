@@ -4,22 +4,48 @@
       <h1 class="span-12">Crie sua conta</h1>
       <p class="span-12">Selecione seu perfil e preencha os campos abaixo.</p>
 
-      <div class="user-type-selector span-12">
-        <button type="button" :class="{ active: selectedUserType === 'client' }" @click="setUserType('client')">
-          Sou Cliente
-        </button>
-        <button type="button" :class="{ active: selectedUserType === 'provider' }" @click="setUserType('provider')">
-          Sou Provedor
-        </button>
-      </div>
+      <!-- O UserTypeSelector agora precisa passar 'Empresa' como uma das opções -->
+      <UserTypeSelector v-model="selectedUserType" class="span-12" />
       
+      <!-- Campos Condicionais para Empresa -->
+      <template v-if="selectedUserType === 'company'">
+        <div class="form-group span-4">
+          <label for="tradeName">Nome Fantasia da Empresa <span class="text-red-500">*</span></label>
+          <input type="text" id="tradeName" v-model="formData.tradeName" placeholder="Digite o nome fantasia" />
+          <p v-if="errors.tradeName" class="error-message">{{ errors.tradeName }}</p>
+        </div>
+        <div class="form-group span-4">
+          <label for="cnpj">CNPJ <span class="text-red-500">*</span></label>
+          <input type="text" id="cnpj" v-model="formData.cnpj" placeholder="00.000.000/0000-00" />
+          <p v-if="errors.cnpj" class="error-message">{{ errors.cnpj }}</p>
+        </div>
+        <div class="form-group span-4">
+          <label for="companyLogo">Logo da Empresa</label>
+           <div class="file-input-wrapper">
+            <input type="file" id="companyLogo" @change="handleFileUpload" accept="image/*" />
+            <label for="companyLogo" class="file-input-label">
+              {{ companyLogoName || 'Selecionar arquivo...' }}
+            </label>
+          </div>
+          <p v-if="errors.companyLogo" class="error-message">{{ errors.companyLogo }}</p>
+        </div>
+         <div class="form-group span-12">
+          <label for="description">Descrição <span class="text-red-500">*</span></label>
+          <textarea id="description" v-model="formData.description" placeholder="Descreva brevemente a empresa..." rows="3"></textarea>
+          <p v-if="errors.description" class="error-message">{{ errors.description }}</p>
+        </div>
+
+        <hr class="divider span-12" />
+      </template>
+      
+      <!-- Campos de Usuário Padrão -->
       <div class="form-group span-4">
-        <label for="fullName">Nome Completo <span class="text-red-500">*</span></label>
+        <label for="fullName">Nome Completo do Responsável <span class="text-red-500">*</span></label>
         <input type="text" id="fullName" v-model="formData.fullName" placeholder="Digite seu nome completo" />
         <p v-if="errors.fullName" class="error-message">{{ errors.fullName }}</p>
       </div>
       <div class="form-group span-4">
-        <label for="cpf">CPF <span class="text-red-500">*</span></label>
+        <label for="cpf">CPF do Responsável <span class="text-red-500">*</span></label>
         <input type="text" id="cpf" v-model="formData.cpf" placeholder="000.000.000-00" />
         <p v-if="errors.cpf" class="error-message">{{ errors.cpf }}</p>
       </div>
@@ -96,24 +122,30 @@
 import { defineComponent } from 'vue';
 import Swal from "sweetalert2";
 import { z, ZodError } from "zod";
+import UserTypeSelector from '../components/UserTypeSelector.vue';
+import 'vue-router';
 
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $router: import('vue-router').Router;
+    $route: import('vue-router').RouteLocationNormalizedLoaded;
+  }
+}
 
-const RegisterSchema = z.object({
-  fullName: z.string({ error: "O nome completo é obrigatório." }).min(5, "O nome completo deve ter no mínimo 5 caracteres.").max(100, "O nome excedeu o limite de 100 caracteres."),
-  email: z.email("Por favor, insira um e-mail válido."),
-  phone: z.string({ error: "O número de telefone é obrigatório." }).min(10, "O telefone deve ter no mínimo 10 dígitos.").max(11, "O telefone deve ter no máximo 11 dígitos."),
-  cpf: z.string({ error: "O CPF é obrigatório." }).length(11, "O CPF deve ter 11 dígitos."),
-  password: z.string({ error: "A senha é obrigatória." })
-  .min(8, "A senha deve ter no mínimo 8 caracteres.")
-  .regex(/(?=.*[a-z])/, "Deve conter pelo menos uma letra minúscula.")
-  .regex(/(?=.*[A-Z])/, "Deve conter pelo menos uma letra maiúscula.")
-  .regex(/(?=.*[^A-Za-z0-9])/, "Deve conter pelo menos um caractere especial."),
-  confirmPassword: z.string({ error: "A confirmação de senha é obrigatória." }),
+// Esquema base com campos comuns a todos os usuários
+const baseSchema = z.object({
+  fullName: z.string().nonempty("O nome completo é obrigatório.").min(5, "O nome completo deve ter no mínimo 5 caracteres.").max(100),
+  email: z.string().nonempty("O e-mail é obrigatório.").email("Por favor, insira um e-mail válido."),
+  phone: z.string().nonempty("O telefone é obrigatório.").min(10, "O telefone deve ter no mínimo 10 dígitos.").max(15),
+  cpf: z.string().nonempty("O CPF é obrigatório.").length(11, "O CPF deve ter 11 dígitos."),
+  password: z.string().nonempty("A senha é obrigatória.")
+    .min(8, "A senha deve ter no mínimo 8 caracteres.")
+    .regex(/(?=.*[a-z])/, "Deve conter uma letra minúscula.")
+    .regex(/(?=.*[A-Z])/, "Deve conter uma letra maiúscula.")
+    .regex(/(?=.*[^A-Za-z0-9])/, "Deve conter um caractere especial."),
+  confirmPassword: z.string().nonempty("A confirmação de senha é obrigatória."),
   birthDate: z.preprocess((val) => (val === "" ? undefined : val),
-    z.coerce.date()
-      .min(new Date("1900-01-01"), { message: "A data de nascimento não pode ser anterior a 1900." })
-      .max(new Date(), { message: "A data de nascimento não pode ser no futuro." })
-      .optional()
+    z.coerce.date().optional()
   ),
   cep: z.string().optional(),
   logradouro: z.string().optional(),
@@ -121,53 +153,104 @@ const RegisterSchema = z.object({
   bairro: z.string().optional(),
   cidade: z.string().optional(),
   estado: z.string().optional(),
-})
-.refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem.",
-  path: ["confirmPassword"],
 });
 
-type FormData = z.infer<typeof RegisterSchema>;
+// Esquema com os campos adicionais de empresa
+const companySchema = z.object({
+  tradeName: z.string().nonempty("O nome fantasia é obrigatório.").min(2, "O nome fantasia deve ter no mínimo 2 caracteres."),
+  cnpj: z.string().nonempty("O CNPJ é obrigatório.").length(14, "O CNPJ deve ter 14 dígitos."),
+  description: z.string().nonempty("A descrição é obrigatória.").min(10, "A descrição deve ter no mínimo 10 caracteres."),
+  companyLogo: z.any().optional()
+});
 
 export default defineComponent({
   name: "RegisterPage",
+  components: {
+    UserTypeSelector
+  },
   data() {
     return {
-      selectedUserType: 'client',
-      formData: {} as Partial<FormData>,
+      selectedUserType: 'client' as 'client' | 'company',
+      formData: {
+        fullName: '',
+        email: '',
+        phone: '',
+        cpf: '',
+        password: '',
+        confirmPassword: '',
+        birthDate: '',
+        cep: '',
+        logradouro: '',
+        numero: '',
+        bairro: '',
+        cidade: '',
+        estado: '',
+        tradeName: '',
+        cnpj: '',
+        description: '',
+        companyLogo: null,
+      },
       errors: {} as Record<string, string>,
+      companyLogoName: '',
     };
   },
   methods: {
-    setUserType(type: 'client' | 'provider') {
-      this.selectedUserType = type;
+    handleFileUpload(event: Event) {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        const file = target.files[0];
+        this.formData.companyLogo = file;
+        this.companyLogoName = file.name;
+      }
     },
     handleRegister() {
       this.errors = {};
+      
+      // Escolhe o esquema de validação com base no tipo de usuário
+      const finalSchema = this.selectedUserType === 'company'
+        ? baseSchema.merge(companySchema)
+        : baseSchema;
+      
+      // Adiciona a validação de confirmação de senha
+      const schemaWithRefine = finalSchema.refine((data) => data.password === data.confirmPassword, {
+        message: "As senhas não coincidem.",
+        path: ["confirmPassword"],
+      });
+
       try {
-        const validatedData = RegisterSchema.parse(this.formData);
+        const validatedData = schemaWithRefine.parse(this.formData);
+
         const payload = {
           ...validatedData,
           userType: this.selectedUserType
         };
+
+        // Remove campos de empresa do payload final se for cliente
+        if (payload.userType === 'client') {
+            delete (payload as any).tradeName;
+            delete (payload as any).cnpj;
+            delete (payload as any).description;
+            delete (payload as any).companyLogo;
+        }
+
+
         console.log("Dados a serem enviados para o backend:", payload);
-        console.log("Dados validados com sucesso:", validatedData);
         this.showToast("success", `Cadastro como ${this.selectedUserType} realizado com sucesso!`);
         setTimeout(() => { this.$router.push('/login'); }, 2000);
+
       } catch (error) {
         if (error instanceof ZodError) {
           const formattedErrors: Record<string, string> = {};
-          const fieldErrors = error.format();
+          const fieldErrors = error.flatten().fieldErrors;
           for (const key in fieldErrors) {
-             if (key !== "_errors" && Object.prototype.hasOwnProperty.call(fieldErrors, key)) {
-                const errorArray = (fieldErrors as any)[key]?._errors;
+             if (Object.prototype.hasOwnProperty.call(fieldErrors, key)) {
+                const errorArray = (fieldErrors as any)[key];
                 if (errorArray && errorArray.length > 0) {
                     formattedErrors[key] = errorArray[0];
                 }
             }
           }
           this.errors = formattedErrors;
-          console.log("Erros formatados:", this.errors);
           this.showToast("error", "Por favor, corrija os erros no formulário.");
         }
       }
@@ -215,17 +298,15 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 40px 20px; /* Espaçamento no topo e base da página */
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 
-/* NOVO LAYOUT EM GRID */
+/* LAYOUT EM GRID */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr); /* Define um grid de 12 colunas */
-  gap: 16px 20px; /* Espaçamento vertical e horizontal */
-  
-  /* Estilos visuais do formulário */
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px 20px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
@@ -234,14 +315,13 @@ export default defineComponent({
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   color: #fff;
   width: 100%;
-  max-width: 1200px; /* Largura máxima do formulário horizontal */
+  max-width: 1200px;
 }
 
-/* CLASSES PARA CONTROLAR O TAMANHO DAS COLUNAS */
+/* CLASSES PARA COLUNAS */
 .span-2 { grid-column: span 2; }
 .span-4 { grid-column: span 4; }
 .span-12 { grid-column: span 12; }
-
 
 /* Títulos e Parágrafos */
 h1, p:not(.error-message) {
@@ -251,8 +331,7 @@ h1, p:not(.error-message) {
 h1 { font-size: 2em; font-weight: 700; }
 p:not(.error-message) { color: #a0aec0; margin-bottom: 24px; }
 
-
-/* Agrupador de Label + Input */
+/* GRUPO DE FORMULÁRIO */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -265,7 +344,7 @@ label {
   color: #e2e8f0;
 }
 
-input {
+input, textarea {
   padding: 14px;
   font-size: 14px;
   border: none;
@@ -274,46 +353,52 @@ input {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   width: 100%;
+  font-family: 'Inter', sans-serif;
 }
-input::placeholder { color: rgba(255, 255, 255, 0.5); }
-input:focus { box-shadow: 0 0 0 2px #3b82f6; }
+input::placeholder, textarea::placeholder { color: rgba(255, 255, 255, 0.5); }
+input:focus, textarea:focus { box-shadow: 0 0 0 2px #3b82f6; }
+textarea { resize: vertical; }
 
-/* BOTÕES DE SELEÇÃO DE PERFIL */
-.user-type-selector {
-  display: flex;
-  gap: 12px;
-  justify-content: center; /* Centraliza os botões */
+/* ESTILO INPUT DE ARQUIVO */
+.file-input-wrapper {
+  position: relative;
+  width: 100%;
 }
-.user-type-selector button {
-  flex: 0 1 250px; /* Impede que os botões estiquem demais */
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.file-input-wrapper input[type="file"] {
+  display: none;
+}
+.file-input-label {
+  display: inline-block;
+  padding: 14px;
   border-radius: 8px;
-  background-color: transparent;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.3s;
-  font-size: 14px;
-  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.user-type-selector button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-.user-type-selector button.active {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
+.file-input-label:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
-/* ESTILO PARA MENSAGEM DE ERRO */
+
+/* LINHA DIVISÓRIA */
+.divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 10px 0;
+}
+
 .error-message {
-  color: #ef4444; /* Vermelho */
+  color: #ef4444;
   font-size: 12px;
   margin: 0;
-  text-align: left; /* Alinha o erro à esquerda */
+  text-align: left;
 }
 
-/* OUTROS ESTILOS */
 .btn {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   border: none;
@@ -323,19 +408,12 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   font-weight: 600;
   cursor: pointer;
   font-size: 15px;
-  width: 100%; /* Garante que o botão dentro do form-group ocupe o espaço */
+  width: 100%;
 }
-.links {
-  text-align: center;
-}
-.links a {
-  font-size: 14px;
-  color: #93c5fd;
-}
-.text-red-500 {
-  color: #ef4444;
-  margin-left: 2px;
-}
+
+.links { text-align: center; }
+.links a { font-size: 14px; color: #93c5fd; }
+.text-red-500 { color: #ef4444; margin-left: 2px; }
 
 /* ANIMAÇÃO */
 .animated-form {
@@ -346,15 +424,14 @@ input:focus { box-shadow: 0 0 0 2px #3b82f6; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* === RESPONSIVIDADE PARA CELULAR === */
+/* RESPONSIVIDADE */
 @media (max-width: 800px) {
   .form-grid {
-    grid-template-columns: 1fr; /* Em telas menores, usamos apenas 1 coluna */
+    grid-template-columns: 1fr;
   }
-
-  /* Todos os campos voltam a ocupar a largura total */
   .span-2, .span-4, .span-12 {
     grid-column: span 1;
   }
 }
 </style>
+
