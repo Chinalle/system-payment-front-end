@@ -39,24 +39,48 @@
               </button>
 
               <!-- Conteúdo do Collapse -->
-              <transition name="expand">
-                <div v-show="isCollapseOpen" class="p-4 bg-gray-800 border-t border-gray-700 space-y-3">
-                  <label class="block text-gray-300 text-sm font-semibold">Nome do dia de trabalho:</label>
-                  <input
-                    v-model="workdayName"
-                    type="text"
-                    placeholder="Ex: Segunda-feira"
-                    class="w-full p-2 bg-gray-900 text-gray-200 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+<transition name="expand">
+  <div v-show="isCollapseOpen" class="p-4 bg-gray-800 border-t border-gray-700 space-y-3">
+    
+    <!-- Checkbox -->
+    <div class="flex items-center space-x-2">
+      <input
+        id="cantWorkCheckbox"
+        type="checkbox"
+        v-model="hasUnavailableDays"
+        class="w-4 h-4 text-blue-500 border-gray-600 rounded focus:ring-blue-500 bg-gray-900"
+      />
+      <label for="cantWorkCheckbox" class="text-gray-300 text-sm">
+        Existem dias da semana em que você <strong>não pode trabalhar</strong>?
+      </label>
+    </div>
 
-                  <button
-                    class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-                    @click="saveWorkday"
-                  >
-                    Salvar
-                  </button>
-                </div>
-              </transition>
+    <!-- Select múltiplo -->
+    <div>
+      <label class="block text-gray-300 text-sm font-semibold mb-1">
+        Selecione os dias indisponíveis:
+      </label>
+
+      <select
+        multiple
+        v-model="unavailableDays"
+        :disabled="!hasUnavailableDays"
+        class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+      >
+        <option v-for="day in weekDays" :key="day" :value="day">{{ day }}</option>
+      </select>
+    </div>
+
+    <!-- Exibir resultado -->
+    <div v-if="hasUnavailableDays && unavailableDays.length" class="text-sm text-gray-400 mt-2">
+      <p>Dias marcados como indisponíveis:</p>
+      <ul class="list-disc ml-5 text-gray-300">
+        <li v-for="day in unavailableDays" :key="day">{{ day }}</li>
+      </ul>
+    </div>
+
+  </div>
+</transition>
             </div>
 
           </div>
@@ -98,6 +122,20 @@ const eventData = reactive({
   start: '',
   end: '',
 });
+
+const hasUnavailableDays = ref(false);
+const unavailableDays = ref([]);
+
+// Lista de dias da semana
+const weekDays = [
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+  "Domingo",
+];
 
 // Estado que será atualizado pelo CategoryDropdown
 const selectedCategory = ref(props.category); 
