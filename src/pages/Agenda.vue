@@ -79,6 +79,12 @@
           <li>Notion Calendar menu: <kbd class="kbd">Ctrl</kbd> <kbd>K</kbd></li>
         </ul>
       </div>
+          <button
+          @click="vasco = true"
+          class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+        >
+          Configuração de Agenda
+        </button>
     </div>
   </div>
 
@@ -86,6 +92,13 @@
     :is-visible="isModalVisible"
     :category="selectedCategory"        :event-categories="eventCategories" :select-info="currentSelectInfo"
     @close="isModalVisible = false"
+    @create="finalizeEventCreation"
+  />
+    <ScheduleConfiguration
+
+    :is-visible="vasco"
+    :category="selectedCategory"        :event-categories="eventCategories" :select-info="currentSelectInfo"
+    @close="vasco = false"
     @create="finalizeEventCreation"
   />
 </template>
@@ -98,6 +111,9 @@ import interactionPlugin from '@fullcalendar/interaction'
 import { ref, reactive, computed } from 'vue' 
 
 import EventModal from '../components/EventModal.vue' 
+import ScheduleConfiguration
+ from '../components/ScheduleConfiguration.vue' 
+
 
 // ----------------------------------------------------
 // 1. ESTADO DO MODAL E CORES (Prioridade)
@@ -112,6 +128,7 @@ const eventCategories = reactive([
 
 const selectedCategory = ref(eventCategories[0])
 const isModalVisible = ref(false)
+const vasco = ref(false)
 const currentSelectInfo = ref(null)
 
 const selectCategory = (category) => {
@@ -157,6 +174,8 @@ const calendarRef = ref(null)
 const handleDateSelect = (selectInfo) => {
   currentSelectInfo.value = selectInfo
   isModalVisible.value = true
+    vasco.value = true
+
 }
 
 const finalizeEventCreation = (eventData) => {
@@ -175,6 +194,8 @@ const finalizeEventCreation = (eventData) => {
   allEvents.push(newEvent); 
   
   isModalVisible.value = false;
+    vasco.value = false;
+
 }
 
 const handleEventClick = (clickInfo) => {
