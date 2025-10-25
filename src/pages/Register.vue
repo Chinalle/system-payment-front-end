@@ -4,10 +4,8 @@
       <h1 class="span-12">Crie sua conta</h1>
       <p class="span-12">Selecione seu perfil e preencha os campos abaixo.</p>
 
-      <!-- O UserTypeSelector agora precisa passar 'Empresa' como uma das opções -->
       <UserTypeSelector v-model="selectedUserType" class="span-12" />
       
-      <!-- Campos Condicionais para Empresa -->
       <template v-if="selectedUserType === 'company'">
         <div class="form-group span-4">
           <label for="tradeName">Nome Fantasia da Empresa <span class="text-red-500">*</span></label>
@@ -38,7 +36,6 @@
         <hr class="divider span-12" />
       </template>
       
-      <!-- Campos de Usuário Padrão -->
       <div class="form-group span-4">
         <label for="fullName">Nome Completo do Responsável <span class="text-red-500">*</span></label>
         <input type="text" id="fullName" v-model="formData.fullName" placeholder="Digite seu nome completo" />
@@ -132,7 +129,6 @@ declare module 'vue' {
   }
 }
 
-// Esquema base com campos comuns a todos os usuários
 const baseSchema = z.object({
   fullName: z.string().nonempty("O nome completo é obrigatório.").min(5, "O nome completo deve ter no mínimo 5 caracteres.").max(100),
   email: z.string().nonempty("O e-mail é obrigatório.").email("Por favor, insira um e-mail válido."),
@@ -155,7 +151,6 @@ const baseSchema = z.object({
   estado: z.string().optional(),
 });
 
-// Esquema com os campos adicionais de empresa
 const companySchema = z.object({
   tradeName: z.string().nonempty("O nome fantasia é obrigatório.").min(2, "O nome fantasia deve ter no mínimo 2 caracteres."),
   cnpj: z.string().nonempty("O CNPJ é obrigatório.").length(14, "O CNPJ deve ter 14 dígitos."),
@@ -206,12 +201,10 @@ export default defineComponent({
     handleRegister() {
       this.errors = {};
       
-      // Escolhe o esquema de validação com base no tipo de usuário
       const finalSchema = this.selectedUserType === 'company'
         ? baseSchema.merge(companySchema)
         : baseSchema;
       
-      // Adiciona a validação de confirmação de senha
       const schemaWithRefine = finalSchema.refine((data) => data.password === data.confirmPassword, {
         message: "As senhas não coincidem.",
         path: ["confirmPassword"],
@@ -225,7 +218,6 @@ export default defineComponent({
           userType: this.selectedUserType
         };
 
-        // Remove campos de empresa do payload final se for cliente
         if (payload.userType === 'client') {
             delete (payload as any).tradeName;
             delete (payload as any).cnpj;
