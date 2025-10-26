@@ -14,6 +14,7 @@ import Checkout from "@/pages/Checkout.vue";
 import PaymentForm from "@/pages/PaymentForm.vue";
 import PaymentSuccess from "@/pages/PaymentSuccess.vue";
 import PaymentFailure from "@/pages/PaymentFailure.vue";
+import BankAccountsCompany from "@/pages/BankAccountsCompany.vue"; 
 
 const routes = [
   {
@@ -82,6 +83,12 @@ const routes = [
     name: "PaymentFailure",
     component: PaymentFailure,
     meta: { requiresAuth: true } 
+  },
+    {
+    path: "/bank-accounts-company",
+    name: "BankAccountsCompany",
+    component: BankAccountsCompany,
+    meta: { requiresAuth: true, title: 'Contas Bancárias' } // Assumindo que precisa de login
   },
 ];
 
