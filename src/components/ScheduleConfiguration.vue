@@ -41,6 +41,50 @@
               <!-- Conteúdo do Collapse -->
 <transition name="expand">
   <div v-show="isCollapseOpen" class="p-4 bg-gray-800 border-t border-gray-700 space-y-3">
+
+      <h4 class="text-gray-300 text-sm font-semibold mb-2">Horário de trabalho</h4>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <!-- Início -->
+    <div>
+      <label class="block text-gray-400 text-xs mb-1">Início</label>
+      <input
+        type="time"
+        v-model="workStart"
+        class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <!-- Intervalo -->
+    <div>
+      <label class="block text-gray-400 text-xs mb-1">Intervalo</label>
+      <input
+        type="time"
+        v-model="workBreak"
+        class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <!-- Fim -->
+    <div>
+      <label class="block text-gray-400 text-xs mb-1">Fim</label>
+      <input
+        type="time"
+        v-model="workEnd"
+        class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  </div>
+
+  <!-- Exibição do resumo -->
+  <div v-if="workStart && workEnd" class="mt-3 text-sm text-gray-400">
+    <p>
+      Horário selecionado: 
+      <span class="text-gray-200 font-medium">
+        {{ workStart }} - {{ workBreak ? workBreak + ' (intervalo) - ' : '' }}{{ workEnd }}
+      </span>
+    </p>
+  </div>
     
     <!-- Checkbox -->
     <div class="flex items-center space-x-2">
@@ -79,6 +123,62 @@
       </ul>
     </div>
 
+    <!-- Selecionar horários de trabalho -->
+<div class="mt-6 border-t border-gray-700 pt-4">
+
+<!-- Exceção de horário -->
+<div class="mt-6 border-t border-gray-700 pt-4">
+  <label class="flex items-center space-x-2 text-gray-300 font-semibold">
+    <input
+      type="checkbox"
+      v-model="hasException"
+      class="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-600 focus:ring-blue-500"
+    />
+    <span>Existe algum horário de exceção?</span>
+  </label>
+
+  <transition name="fade">
+    <div
+      v-show="hasException"
+      class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
+    >
+      <p class="text-sm text-gray-400 mb-2">
+        Selecione o intervalo em que <span class="text-red-400">não poderá trabalhar</span>:
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-gray-400 text-xs mb-1">Início da exceção</label>
+          <input
+            type="time"
+            v-model="exceptionStart"
+            class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-gray-400 text-xs mb-1">Fim da exceção</label>
+          <input
+            type="time"
+            v-model="exceptionEnd"
+            class="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div v-if="exceptionStart && exceptionEnd" class="text-sm text-gray-400 mt-2">
+        <p>
+          Exceção ativa:
+          <span class="text-red-400 font-medium">{{ exceptionStart }} - {{ exceptionEnd }}</span>
+        </p>
+      </div>
+    </div>
+  </transition>
+</div>
+  
+</div>
+
   </div>
 </transition>
             </div>
@@ -107,6 +207,14 @@ const saveWorkday = () => {
   console.log("Nome do dia salvo:", workdayName.value);
   alert(`Dia de trabalho salvo: ${workdayName.value}`);
 };
+
+const workStart = ref("");
+const workBreak = ref("");
+const workEnd = ref("");
+
+const hasException = ref(false);
+const exceptionStart = ref("");
+const exceptionEnd = ref("");
 
 const props = defineProps({
   isVisible: Boolean,
