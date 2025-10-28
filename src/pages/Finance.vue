@@ -297,12 +297,6 @@ const getValueClass = (type: Transaction['type']): string => { // Adicionada tip
         >
           + Cadastro contas bancarias
         </button>
-        <button
-          @click="goToCheckout"
-          class="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30"
-        >
-          + Nova Transação
-        </button>
       </div>
     </div>
 

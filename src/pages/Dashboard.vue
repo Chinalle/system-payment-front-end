@@ -1,4 +1,5 @@
 <template>
+  
   <div class="container-grid">
     <!-- Coluna 1: Clientes -->
     <section class="space-y-6">

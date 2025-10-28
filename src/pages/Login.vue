@@ -47,6 +47,7 @@ import Swal from "sweetalert2";
 import { z, ZodError } from "zod";
 import UserTypeSelector from '../components/UserTypeSelector.vue';
 import 'vue-router';
+import { useAuthStore } from "@/stores/auth";
 
 declare module 'vue' {
   interface ComponentCustomProperties {
@@ -78,7 +79,7 @@ export default defineComponent({
   },
   methods: {
     // 5. Lógica de validação com Zod no handleSubmit
-    handleSubmit() {
+    async handleSubmit() {
       this.errors = {}; // Limpa erros antigos
 
       try {
@@ -90,12 +91,20 @@ export default defineComponent({
         // Tenta validar os dados
         LoginSchema.parse(dataToValidate);
 
+        this.showToast("info", "Autenticando..."); // Opcional: feedback
+        const authStore = useAuthStore();
+
+        await authStore.login({ 
+          email: this.email, 
+          password: this.password 
+        });
+      
         // Se a validação passar, continua...
-        const payload = {
+        /*const payload = {
           ...dataToValidate,
           userType: this.selectedUserType
         };
-        console.log("Dados de login a serem enviados:", payload);
+        console.log("Dados de login a serem enviados:", payload);*/
         
         this.showToast("success", `Login feito como ${this.selectedUserType}`);
         this.$router.push("/dashboard");
@@ -115,6 +124,9 @@ export default defineComponent({
           }
           this.errors = formattedErrors;
           this.showToast("error", "Por favor, corrija os erros.");
+        } else {
+          console.error("Erro de API no login:", error);
+          this.showToast("error", "E-mail ou senha inválidos.");          
         }
       }
     },

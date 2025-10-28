@@ -121,6 +121,7 @@ import Swal from "sweetalert2";
 import { z, ZodError } from "zod";
 import UserTypeSelector from '../components/UserTypeSelector.vue';
 import 'vue-router';
+import apiClient from "@/services/api"; 
 
 declare module 'vue' {
   interface ComponentCustomProperties {
@@ -129,6 +130,7 @@ declare module 'vue' {
   }
 }
 
+// Seus schemas Zod (100% originais, sem alterações)
 const baseSchema = z.object({
   fullName: z.string().nonempty("O nome completo é obrigatório.").min(5, "O nome completo deve ter no mínimo 5 caracteres.").max(100),
   email: z.string().nonempty("O e-mail é obrigatório.").email("Por favor, insira um e-mail válido."),
@@ -155,7 +157,7 @@ const companySchema = z.object({
   tradeName: z.string().nonempty("O nome fantasia é obrigatório.").min(2, "O nome fantasia deve ter no mínimo 2 caracteres."),
   cnpj: z.string().nonempty("O CNPJ é obrigatório.").length(14, "O CNPJ deve ter 14 dígitos."),
   description: z.string().nonempty("A descrição é obrigatória.").min(10, "A descrição deve ter no mínimo 10 caracteres."),
-  companyLogo: z.any().optional()
+  companyLogo: z.any().optional() 
 });
 
 export default defineComponent({
@@ -163,6 +165,7 @@ export default defineComponent({
   components: {
     UserTypeSelector
   },
+  // 'data()' (100% original)
   data() {
     return {
       selectedUserType: 'client' as 'client' | 'company',
@@ -183,28 +186,33 @@ export default defineComponent({
         tradeName: '',
         cnpj: '',
         description: '',
-        companyLogo: null,
+        companyLogo: null as File | null, 
       },
       errors: {} as Record<string, string>,
       companyLogoName: '',
     };
   },
   methods: {
+    // 'handleFileUpload' (100% original)
     handleFileUpload(event: Event) {
       const target = event.target as HTMLInputElement;
       if (target.files && target.files[0]) {
         const file = target.files[0];
-        this.formData.companyLogo = file;
+        this.formData.companyLogo = file; 
         this.companyLogoName = file.name;
       }
     },
-    handleRegister() {
+
+    // =================================================================
+    // MÉTODO handleRegister ATUALIZADO (Lógica dividida JSON vs FormData)
+    // =================================================================
+    async handleRegister() {
       this.errors = {};
       
-      const finalSchema = this.selectedUserType === 'company'
-        ? baseSchema.merge(companySchema)
-        : baseSchema;
-      
+      const isCompany = this.selectedUserType === 'company';
+
+      // Lógica do Zod (100% original)
+      const finalSchema = isCompany ? baseSchema.merge(companySchema) : baseSchema;
       const schemaWithRefine = finalSchema.refine((data) => data.password === data.confirmPassword, {
         message: "As senhas não coincidem.",
         path: ["confirmPassword"],
@@ -212,25 +220,102 @@ export default defineComponent({
 
       try {
         const validatedData = schemaWithRefine.parse(this.formData);
+        
+        this.showToast("info", "Criando sua conta...");
+        
+        // --- INÍCIO DA LÓGICA DIVIDIDA ---
 
-        const payload = {
-          ...validatedData,
-          userType: this.selectedUserType
-        };
+        if (isCompany) {
+          // ===============================
+          // FLUXO DE 'COMPANY' (FormData)
+          // ===============================
+          // NOTA: Este fluxo provavelmente vai falhar com "property tradeName should not exist",
+          // porque o seu 'Example Value' não mostra campos de 'company'.
+          // Você precisa validar com o dev do backend qual é a rota correta para criar uma empresa.
+          // ===============================
+          
+          const registrationFormData = new FormData();
 
-        if (payload.userType === 'client') {
-            delete (payload as any).tradeName;
-            delete (payload as any).cnpj;
-            delete (payload as any).description;
-            delete (payload as any).companyLogo;
+          // Campos do Usuário
+          registrationFormData.append('fullName', validatedData.fullName); 
+          registrationFormData.append('email', validatedData.email);
+          registrationFormData.append('phone', validatedData.phone);
+          registrationFormData.append('cpf', validatedData.cpf);
+          registrationFormData.append('passwordHash', validatedData.password); 
+          if (validatedData.birthDate) {
+            registrationFormData.append('birthDate', validatedData.birthDate.toISOString().split('T')[0]);
+          }
+
+          // Campos de Endereço (Aninhados)
+          if(validatedData.cep || validatedData.logradouro) {
+            registrationFormData.append('addresses[0][street]', validatedData.logradouro || '');
+            registrationFormData.append('addresses[0][number]', validatedData.numero || '');
+            registrationFormData.append('addresses[0][city]', validatedData.cidade || '');
+            registrationFormData.append('addresses[0][state]', validatedData.estado || '');
+            registrationFormData.append('addresses[0][zipCode]', validatedData.cep || ''); 
+          }
+
+          // Campos de Regra (Como String, pois é FormData)
+          registrationFormData.append('role', 'provider'); 
+          registrationFormData.append('isActive', 'true');
+          registrationFormData.append('isConfirmed', 'true'); // Seguindo o Example Value
+
+          // Campos da Empresa
+          registrationFormData.append('tradeName', validatedData.tradeName!);
+          registrationFormData.append('cnpj', validatedData.cnpj!);
+          registrationFormData.append('description', validatedData.description!);
+          if (validatedData.companyLogo) {
+            registrationFormData.append('companyLogo', validatedData.companyLogo);
+          }
+          
+          await apiClient.post('/users/create', registrationFormData);
+
+        } else {
+          // ===============================
+          // FLUXO DE 'CLIENT' (JSON)
+          // ===============================
+          // Este fluxo VAI funcionar, pois envia booleanos reais.
+          
+          // 1. Monta o payload JSON
+          const payload: any = {
+            fullName: validatedData.fullName,
+            email: validatedData.email,
+            passwordHash: validatedData.password,
+            phone: validatedData.phone,
+            cpf: validatedData.cpf,
+            role: 'client',
+            isActive: true, // <-- Booleano real
+            isConfirmed: true, // <-- Booleano real (como no Example Value)
+            addresses: []
+          };
+          
+          if (validatedData.birthDate) {
+            payload.birthDate = validatedData.birthDate.toISOString().split('T')[0];
+          }
+
+          // 2. Monta o objeto de endereço
+          if (validatedData.cep || validatedData.logradouro) {
+            payload.addresses.push({
+              street: validatedData.logradouro || '',
+              number: validatedData.numero || '',
+              city: validatedData.cidade || '',
+              state: validatedData.estado || '',
+              zipCode: validatedData.cep || '',
+              // 'complement' e 'district' não estão sendo enviados
+            });
+          }
+          
+          // 3. Envia como application/json
+          await apiClient.post('/users/create', payload);
         }
+        
+        // --- FIM DA LÓGICA DIVIDIDA ---
 
-
-        console.log("Dados a serem enviados para o backend:", payload);
-        this.showToast("success", `Cadastro como ${this.selectedUserType} realizado com sucesso!`);
+        this.showToast("success", `Cadastro realizado com sucesso!`);
         setTimeout(() => { this.$router.push('/login'); }, 2000);
 
-      } catch (error) {
+      } catch (error: any) { 
+        // Tratamento de erro (100% original)
         if (error instanceof ZodError) {
           const formattedErrors: Record<string, string> = {};
           const fieldErrors = error.flatten().fieldErrors;
@@ -244,9 +329,23 @@ export default defineComponent({
           }
           this.errors = formattedErrors;
           this.showToast("error", "Por favor, corrija os erros no formulário.");
+        
+        } else {
+          // Erro vindo da API (NestJS)
+          console.error("Erro de API no registro:", error);
+          
+          let apiErrorMessage = "Falha ao realizar cadastro.";
+          if (error.response?.data?.message) {
+             apiErrorMessage = Array.isArray(error.response.data.message) 
+               ? error.response.data.message.join(', ') 
+               : error.response.data.message;
+          }
+          this.showToast("error", `Erro: ${apiErrorMessage}`);
         }
       }
     },
+
+    // 'fetchAddressFromCep' (100% original)
     async fetchAddressFromCep() {
       const cep = (this.formData.cep || "").replace(/\D/g, ''); 
       if (cep.length !== 8) return;
@@ -268,6 +367,8 @@ export default defineComponent({
         console.error("Erro ao buscar CEP:", error);
       }
     },
+
+    // 'showToast' (100% original)
     showToast(icon: 'success' | 'error' | 'warning' | 'info' | 'question', title: string) {
       Swal.fire({
         toast: true,
