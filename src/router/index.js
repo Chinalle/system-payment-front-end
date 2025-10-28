@@ -8,6 +8,7 @@ import Providers from "@/pages/Providers.vue";
 import Agenda from "@/pages/Agenda.vue";
 import Finance from "@/pages/Finance.vue"; 
 import Register from "@/pages/Register.vue";
+import Profile from '@/pages/Profile.vue';
 
 
 // 💳 NOVAS IMPORTAÇÕES das Views de Pagamento
@@ -41,6 +42,12 @@ const routes = [
     name: "Dashboard",
     component: Dashboard,
     meta: { requiresAuth: true } 
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    eta: { requiresAuth: true } 
   },
   {
     path: "/providers",

@@ -13,7 +13,7 @@
             <router-link to="/" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <HomeIcon class="h-5 w-5" />
             </router-link>
-            <router-link to="/login" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/login' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
+            <router-link to="/profile" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/login' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <UserIcon class="h-5 w-5" />
             </router-link>
             <router-link to="/providers" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/providers' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">

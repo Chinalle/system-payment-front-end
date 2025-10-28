@@ -12,7 +12,7 @@
 
     <!-- Login -->
     <router-link 
-      to="/login" 
+      to="/profile" 
       class="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
       :class="$route.path === '/login' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-blue-400'">
       <i class="fas fa-user"></i>
