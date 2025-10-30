@@ -6,6 +6,7 @@ import Login from "@/pages/Login.vue";
 import Providers from "@/pages/Providers.vue";
 import Agenda from "@/pages/Agenda.vue";
 import Finance from "@/pages/Finance.vue"; 
+import Service from "@/pages/Service.vue"; 
 import Register from "@/pages/Register.vue";
 
 
@@ -40,6 +41,14 @@ const routes = [
     component: Dashboard,
     meta: { requiresAuth: true } 
   },
+
+  {
+    path: "/service", 
+    name: "Service",
+    component: Service,
+    meta: { requiresAuth: true } 
+  },
+
   {
     path: "/providers",
     name: "Providers",
