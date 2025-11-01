@@ -42,8 +42,25 @@
               🗑️
             </button>
           </div>
-<br>
-          <h2 class="text-xl font-semibold text-white mb-2">{{ servico.nome }}</h2>
+
+          <!-- TOGGLE DE ATIVAÇÃO -->
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xl font-semibold text-white">{{ servico.nome }}</h2>
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="servico.ativo"
+                class="sr-only peer"
+              />
+              <div
+                class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-green-500 transition-all duration-300 relative"
+              >
+                <span
+                  class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all duration-300 peer-checked:translate-x-5"
+                ></span>
+              </div>
+            </label>
+          </div>
 
           <span
             class="inline-block bg-blue-600/20 text-blue-400 text-xs uppercase tracking-wide font-medium px-3 py-1 rounded-full mb-3"
@@ -62,6 +79,12 @@
               R$ {{ Number(servico.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}
             </p>
             <p><span class="font-medium text-gray-400">Pagamento:</span> {{ servico.pagamento }}</p>
+            <p>
+              <span class="font-medium text-gray-400">Status:</span>
+              <span :class="servico.ativo ? 'text-green-400' : 'text-red-400'">
+                {{ servico.ativo ? 'Ativo' : 'Inativo' }}
+              </span>
+            </p>
           </div>
         </div>
       </div>
@@ -143,6 +166,17 @@
             />
           </div>
 
+          <!-- Toggle dentro do modal -->
+          <div class="flex items-center gap-3 mt-2">
+            <label class="text-sm font-semibold">Serviço ativo?</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" v-model="novoServico.ativo" class="sr-only peer" />
+              <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-green-500 transition-all duration-300 relative">
+                <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all duration-300 peer-checked:translate-x-5"></span>
+              </div>
+            </label>
+          </div>
+
           <button
             type="submit"
             class="w-full bg-blue-600 hover:bg-blue-700 mt-3 py-2 rounded-lg font-semibold transition"
@@ -184,21 +218,23 @@ const novoServico = ref({
   duracao: "",
   preco: "",
   pagamento: "",
+  ativo: true, // Novo campo
 });
 
 function salvarServico() {
   if (!novoServico.value.nome) return alert("Informe o nome do serviço!");
 
   if (modoEdicao.value && indiceEdicao.value !== null) {
-    // Atualiza serviço existente
     servicos.value[indiceEdicao.value] = { ...novoServico.value };
   } else {
-    // Adiciona novo serviço
     servicos.value.push({ ...novoServico.value });
   }
 
-  // Limpa formulário e fecha modal
-  Object.keys(novoServico.value).forEach((key) => (novoServico.value[key] = ""));
+  Object.keys(novoServico.value).forEach((key) => {
+    if (key === "ativo") novoServico.value[key] = true;
+    else novoServico.value[key] = "";
+  });
+
   abrirModal.value = false;
   modoEdicao.value = false;
   indiceEdicao.value = null;
