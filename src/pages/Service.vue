@@ -17,15 +17,34 @@
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="(servico, i) in servicos"
-          :key="i"
-          class="bg-[#1a2230] p-4 rounded-lg shadow-md"
-        >
-          <h2 class="font-semibold">{{ servico.nome }}</h2>
-          <p class="text-gray-400 text-sm">{{ servico.descricao }}</p>
-        </div>
-      </div>
+  <div
+    v-for="(servico, i) in servicos"
+    :key="i"
+    class="bg-[#1a2230] p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+  >
+    <h2 class="text-xl font-semibold text-white mb-2">{{ servico.nome }}</h2>
+
+    <span
+      class="inline-block bg-blue-600/20 text-blue-400 text-xs uppercase tracking-wide font-medium px-3 py-1 rounded-full mb-3"
+    >
+      {{ servico.categoria }}
+    </span>
+
+    <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+      {{ servico.descricao }}
+    </p>
+
+    <div class="border-t border-gray-700 pt-3 mt-3 text-sm text-gray-300 space-y-1">
+      <p><span class="font-medium text-gray-400">Duração:</span> {{ servico.duracao }} min</p>
+      <p>
+        <span class="font-medium text-gray-400">Preço:</span>
+        R$ {{ servico.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}
+      </p>
+      <p><span class="font-medium text-gray-400">Pagamento:</span> {{ servico.pagamento }}</p>
+    </div>
+  </div>
+</div>
+
     </div>
 
     <!-- MODAL DE CADASTRO -->
