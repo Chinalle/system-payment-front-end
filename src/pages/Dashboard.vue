@@ -1,8 +1,23 @@
 <template>
   
   <div class="container-grid">
-    <!-- Coluna 1: Clientes -->
+    <!-- Coluna 1: AGENDA & PESSOAS (HOJE, CLIENTES, PRESTADORES) -->
     <section class="space-y-6">
+      
+      <!-- 1. Card HOJE (ListCard) - Mover para o topo -->
+      <ListCard
+        title="Hoje"
+        :items="
+          clients.map(c => ({
+            id: c.id,
+            name: c.name,
+            meta: c.service + ' • ' + c.next,
+            pill: 'Agendado'
+          }))
+        "
+      />
+
+      <!-- 2. Card CLIENTES - Embaixo de HOJE -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Clientes</h3>
@@ -37,25 +52,8 @@
           </div>
         </div>
       </div>
-
-      <!-- Calendário com evento de clique -->
-      <CalendarCard @dateClick="handleDateClick" />
-
-      <ListCard
-        title="Hoje"
-        :items="
-          clients.map(c => ({
-            id: c.id,
-            name: c.name,
-            meta: c.service + ' • ' + c.next,
-            pill: 'Agendado'
-          }))
-        "
-      />
-    </section>
-
-    <!-- Coluna 2: Prestadores -->
-    <section class="space-y-6">
+      
+      <!-- 3. Card PRESTADORES - Embaixo de CLIENTES -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Prestadores</h3>
@@ -94,68 +92,27 @@
           </div>
         </div>
       </div>
-
-      <!-- Seleção de serviços -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Selecione Serviços</h3>
-        </div>
-        <div class="space-y-2">
-          <div
-            v-for="s in services"
-            :key="s.id"
-            class="flex items-center gap-3"
-          >
-            <input type="checkbox" v-model="selectedServices" :value="s" />
-            <span>{{ s.name }} - {{ s.duration }}min - R$ {{ s.price }}</span>
-          </div>
-        </div>
-        
-        <!-- NOVO BLOCO DE PAGAMENTO -->
-        <div class="mt-4 p-3 bg-gray-800 rounded-lg">
-          <p class="mb-2"><b>Duração total:</b> {{ totalDuration }} min</p>
-          <p class="mb-4"><b>Preço total:</b> R$ {{ totalPrice }}</p>
-
-          <button
-            @click="goToCheckout"
-            :disabled="totalPrice === 0"
-            class="w-full py-2 rounded-lg font-bold transition-all"
-            :class="totalPrice > 0 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'"
-          >
-            Pagar Serviços (R$ {{ totalPrice }})
-          </button>
-        </div>
-      </div>
-
-      <ListCard
-        title="Solicitações Recentes"
-        :items="[
-          { id: 1, name: 'Samuel Freitas', meta: 'Corte Masculino', pill: 'Aguardando' },
-          { id: 2, name: 'Lívia Santos', meta: 'Sobrancelhas', pill: 'Confirmado' },
-          { id: 3, name: 'Monalisa', meta: 'Massagem Relaxante', pill: 'Pendente' }
-        ]"
-      />
     </section>
 
-    <!-- Coluna 3: Back-Office -->
+    <!-- Coluna 2: BACK-OFFICE & FINANÇAS -->
     <section class="space-y-6">
+      
+      <!-- 1. Card BACK-OFFICE (Antigas Receita/Despesas/Conversão) -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Back-Office</h3>
-          <div class="text-sm text-gray-400">Sistemas</div>
+          <div class="text-sm text-gray-400">Indicadores Operacionais</div>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <StatCard
-            title="Receita"
+            title="Receita Bruta"
             :value="'R$ ' + metrics.revenue"
             subtitle="semana"
             trend="+12%"
             :positive="true"
           />
           <StatCard
-            title="Despesas"
+            title="Despesas Fixas"
             :value="'R$ ' + metrics.expenses"
             subtitle="semana"
             trend="-4%"
@@ -170,101 +127,155 @@
           />
         </div>
       </div>
+      
+      <!-- 2. NOVO Card: DESEMPENHO FINANCEIRO (Profissional) -->
+      <div class="card bg-gray-800 border-yellow-500/20 shadow-yellow-500/10">
+        <div class="card-header border-b border-yellow-500/30">
+          <h3 class="card-title text-yellow-300">Desempenho Financeiro</h3>
+          <div class="text-sm text-yellow-500">Métricas Chave</div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <StatCard
+            title="Lucro Líquido"
+            :value="'R$ ' + (metrics.revenue - metrics.expenses)"
+            subtitle="mês atual"
+            trend="+8%"
+            :positive="true"
+          />
+          <StatCard
+            title="Ticket Médio"
+            value="R$ 105.50"
+            subtitle="últimos 30 dias"
+            trend="+1.5%"
+            :positive="true"
+          />
+          <StatCard
+            title="Churn Rate"
+            value="3.2%"
+            subtitle="clientes perdidos"
+            trend="-0.5%"
+            :positive="true"
+          />
+        </div>
+      </div>
 
+      <!-- 3. Seleção de serviços (REMOVIDO) -->
+      <!-- 4. Solicitações Recentes (REMOVIDO) -->
+      
+    </section>
+
+    <!-- Coluna 3: GRÁFICOS -->
+    <section class="space-y-6">
       <LineChartCard title="Relatório Diário" />
       <DoughnutChartCard title="Meios de Pagamento" />
       <BarChartCard title="Desempenho por Mês" />
+      
+      <!-- Remoção do Card de Back-Office original da Coluna 3 -->
     </section>
 
-    <!-- Modal de pagamento -->
-    <div
-      v-if="showPayment"
-      class="fixed inset-0 flex items-center justify-center bg-black/70 z-50"
-    >
-      <div class="bg-white p-6 rounded-xl w-full max-w-md text-black">
-        <h2 class="text-xl font-bold mb-4">Confirmação de Pagamento</h2>
-        <p>Finalize seu pagamento em até:</p>
-        <p class="text-2xl font-bold text-red-600">{{ countdown }}s</p>
-        <button
-          @click="confirmPayment"
-          class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
-        >
-          Confirmar Pagamento
-        </button>
-      </div>
-    </div>
+    <!-- Modal de pagamento (REMOVIDO, pois estava ligado à seleção de serviço) -->
+    
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onUnmounted } from "vue"; // Removido onUnmounted se não for mais usado
 import { storeToRefs } from "pinia";
 import { useAppStore } from "../stores/app";
-import { useRouter } from 'vue-router'; // Importar o useRouter
+// import { useRouter } from 'vue-router'; // Removido se goToCheckout foi removido
 
-import CalendarCard from "../components/CalendarCard.vue";
+// import CalendarCard from "../components/CalendarCard.vue"; // Removido
 import ListCard from "../components/ListCard.vue";
 import StatCard from "../components/StatCard.vue";
 import LineChartCard from "../components/LineChartCard.vue";
 import DoughnutChartCard from "../components/DoughnutChartCard.vue";
 import BarChartCard from "../components/BarChartCard.vue";
 
-const router = useRouter(); // Inicializar o router
+// const router = useRouter(); // Removido
 const store = useAppStore();
 const { clients, providers, metrics } = storeToRefs(store);
 
-// Serviços simulados
-const services = ref([
-  { id: 1, name: "Corte de Cabelo", duration: 30, price: 50 },
-  { id: 2, name: "Barba", duration: 20, price: 30 },
-  { id: 3, name: "Massagem Relaxante", duration: 60, price: 120 },
-]);
+// Serviços simulados (REMOVIDO)
+// const services = ref([...]);
 
-const selectedServices = ref([]);
-const totalDuration = computed(() =>
-  selectedServices.value.reduce((acc, s) => acc + s.duration, 0)
-);
-const totalPrice = computed(() =>
-  selectedServices.value.reduce((acc, s) => acc + s.price, 0)
-);
+// selectedServices, totalDuration, totalPrice (REMOVIDO)
+// const selectedServices = ref([]);
+// const totalDuration = computed(...);
+// const totalPrice = computed(...);
 
-// Pagamento (Modal original)
-const showPayment = ref(false);
-const countdown = ref(900); // 15 minutos
-let timer = null;
+// Lógica de Pagamento (Modal original e funções relacionadas REMOVIDAS)
+// const showPayment = ref(false);
+// const countdown = ref(900);
+// let timer = null;
+// const handleDateClick = (info) => {...}; // Removido
+// const startCountdown = () => {...};
+// const confirmPayment = () => {...};
 
-const handleDateClick = (info) => {
-  alert(`Reserva temporária em ${info.dateStr}`);
-  showPayment.value = true;
-  startCountdown();
-};
+// Função de Checkout (REMOVIDA)
+// const goToCheckout = () => {...};
 
-const startCountdown = () => {
-  countdown.value = 900;
-  timer = setInterval(() => {
-    countdown.value--;
-    if (countdown.value <= 0) {
-      clearInterval(timer);
-      showPayment.value = false;
-      alert("Tempo esgotado! Reserva cancelada.");
-    }
-  }, 1000);
-};
+// onUnmounted para limpar timer (REMOVIDO)
+// onUnmounted(() => {...});
+</script>
 
-const confirmPayment = () => {
-  clearInterval(timer);
-  alert("Pagamento confirmado com sucesso!");
-  showPayment.value = false;
-};
+<style scoped>
+/* Estilos globais para o dashboard */
+.container-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem; /* 24px */
+    padding: 1.5rem; /* 24px */
+}
 
-// NOVA FUNÇÃO: Redirecionar para o Checkout
-const goToCheckout = () => {
-    if (totalPrice.value > 0) {
-        router.push('/checkout');
+/* Responsividade para 3 colunas (tablet e desktop) */
+@media (min-width: 1024px) { /* lg breakpoint */
+    .container-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-onUnmounted(() => {
-  if (timer) clearInterval(timer);
-});
-</script>
+/* Estilos de Card genéricos, assumindo um tema escuro */
+.card {
+    background-color: var(--card-bg, #1f2937); /* gray-800 */
+    border: 1px solid var(--card-border, #374151); /* gray-700 */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    padding: 1rem; /* p-4 */
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--header-border, #374151); /* gray-700 */
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    color: var(--card-title, #f3f4f6); /* gray-100 */
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px; /* rounded-full */
+    font-size: 0.75rem; /* text-xs */
+    border: 1px solid;
+    font-weight: 600;
+}
+
+/* Variáveis para cores */
+:root {
+    --primary: #3b82f6; /* blue-500 */
+    --primary-text: #bfdbfe; /* blue-200 */
+    --card-bg: #1f2937;
+    --card-border: #374151;
+    --card-title: #f3f4f6;
+    --header-border: #374151;
+}
+
+
+</style>
+

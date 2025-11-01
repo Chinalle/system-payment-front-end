@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-gray-900 min-h-screen text-gray-300">
+  <div class="p-6 min-h-screen text-gray-300">
     <h2 class="text-3xl font-bold text-gray-100 mb-8">Perfil da Empresa</h2>
 
     <div class="max-w-5xl mx-auto">

@@ -2,7 +2,7 @@
   <div class="p-6 bg-blue-60/80 min-h-screen font-sans text-gray-900 space-y-8">
     
     <!-- HEADER DA APLICAÇÃO (Unificado: Agenda + Horário de Trabalho) --><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b border-blue-200">
-        <!-- Título Centralizado no Layout --><h1 class="text-3xl font-bold tracking-tight text-blue-800">Agenda Interativa</h1>
+        <!-- Título Centralizado no Layout --><h1 class="text-3xl font-bold tracking-tight text-white">Agenda Interativa</h1>
         
         <div class="flex gap-3 mt-4 sm:mt-0">
             <!-- Botão Horário de Trabalho --><button 

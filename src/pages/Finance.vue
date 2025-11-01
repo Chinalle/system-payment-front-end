@@ -287,7 +287,7 @@ const getValueClass = (type: Transaction['type']): string => { // Adicionada tip
 </script>
 
 <template>
-  <div class="p-6 bg-gray-900 min-h-screen text-gray-300">
+  <div class="p-6 min-h-screen text-gray-300">
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-3xl font-bold text-gray-100">Dashboard Financeiro</h2>
       <div class="flex space-x-4">
