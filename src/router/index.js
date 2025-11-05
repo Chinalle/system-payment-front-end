@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
+// --- IMPORTAÇÃO DA NOVA PÁGINA ---
+import Market from "@/pages/Market.vue"; // A sua nova página de marketplace
+
 // Importações das Views existentes
 import Dashboard from "@/pages/Dashboard.vue";
 import Login from "@/pages/Login.vue";
@@ -19,6 +22,8 @@ import PaymentFailure from "@/pages/PaymentFailure.vue";
 import BankAccountsCompany from "@/pages/BankAccountsCompany.vue"; 
 
 const routes = [
+  // --- ROTA PRINCIPAL VOLTOU AO ORIGINAL ---
+  // O fluxo padrão é redirecionar para o login
   {
     path: '/',
     redirect: '/login'
@@ -41,19 +46,19 @@ const routes = [
     path: "/dashboard", 
     name: "Dashboard",
     component: Dashboard,
-    meta: { requiresAuth: true } 
+    meta: { requiresAuth: false } 
   },
   {
     path: '/profile',
     name: 'Profile',
     component: Profile,
-    eta: { requiresAuth: true } 
+    meta: { requiresAuth: true } // Corrigido 'eta' para 'meta'
   },
   {
     path: "/providers",
     name: "Providers",
     component: Providers,
-    meta: { requiresAuth: true } 
+    meta: { requiresAuth: false } 
   },
   {
     path: "/agenda",
@@ -92,11 +97,19 @@ const routes = [
     component: PaymentFailure,
     meta: { requiresAuth: true } 
   },
-    {
+  {
     path: "/bank-accounts-company",
     name: "BankAccountsCompany",
     component: BankAccountsCompany,
     meta: { requiresAuth: true, title: 'Contas Bancárias' }
+  },
+
+  // --- NOVA ROTA DO MARKETPLACE (ADICIONADA AO FIM) ---
+  {
+    path: '/market',
+    name: "Market",
+    component: Market,
+    meta: { requiresAuth: false } // Não requer autenticação
   },
 ];
 
@@ -120,7 +133,9 @@ router.beforeEach((to, from, next) => {
   
   // Cenário 2: A rota NÃO REQUER autenticação (ex: /login, /register)
   // E o usuário JÁ ESTÁ logado
-  else if (to.meta.requiresAuth === false && authStore.isLoggedIn) {
+  // --- LÓGICA ATUALIZADA ---
+  // Adicionamos "&& to.name !== 'Market'" para permitir que utilizadores logados VEJAM o marketplace
+  else if (to.meta.requiresAuth === false && authStore.isLoggedIn && to.name !== 'Market') {
     // Redireciona para o dashboard (evita que o usuário logado veja a tela de login)
     next({ name: 'Dashboard' });
   } 
@@ -128,9 +143,11 @@ router.beforeEach((to, from, next) => {
   // Cenário 3: Todos os outros casos (deixa o usuário ir)
   // (Ex: Rota requer auth E usuário está logado)
   // (Ex: Rota não requer auth E usuário não está logado)
+  // (Ex: Rota é 'Market' E usuário está logado)
   else {
     next();
   }
 });
 
 export default router;
+
