@@ -10,35 +10,26 @@
           </svg>
         </button>
         <nav class="flex flex-col gap-4 mt-6 w-full items-center">
-            <!-- Dashboard -->
             <router-link to="/" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <HomeIcon class="h-5 w-5" />
             </router-link>
-            <!-- Perfil (BUG CORRIGIDO: $route.path === '/profile') -->
             <router-link to="/profile" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/profile' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <UserIcon class="h-5 w-5" />
             </router-link>
-            <!-- Serviços -->
             <router-link to="/providers" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/providers' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <BriefcaseIcon class="h-5 w-5" />
             </router-link>
-            <!-- Financeiro -->
             <router-link to="/finance" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/finance' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <BookIcon class="h-5 w-5" />
             </router-link>
-            <!-- Agenda -->
             <router-link to="/agenda" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/agenda' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <CalendarIcon class="h-5 w-5" />
             </router-link>
             
-            <!-- **** NOVO ÍCONE ADICIONADO AQUI **** -->
-            <!-- Marketplace -->
             <router-link to="/market" class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center" :class="$route.path === '/market' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'">
                 <StoreIcon class="h-5 w-5" />
             </router-link>
-            <!-- **** FIM DA ADIÇÃO **** -->
-
-        </nav>
+            </nav>
         <div class="flex-1"></div>
         <button @click="toggleSettings" :class="[ 'p-2 rounded-lg transition-all duration-300 mb-4', settingsOpen ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white' ]">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,6 +49,8 @@
       <router-view />
     </div>
 
+    <ChatbotWidget />
+
   </div>
 </template>
 
@@ -73,6 +66,7 @@ import {
 
 import Settings from "@/components/Settings.vue";
 import Background from "@/components/background.vue";
+import ChatbotWidget from './components/ChatbotWidget.vue';
 
 export default {
   name: "App",
@@ -85,6 +79,7 @@ export default {
     StoreIcon, // <-- 2. REGISTADO O NOVO ÍCONE
     Settings,
     Background,
+    ChatbotWidget, // REGISTRADO O CHATBOT WIDGET
   },
   data() {
     return {
